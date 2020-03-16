@@ -4,9 +4,17 @@ using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
 
-namespace EssentialsPluginTemplateEPI
+namespace IPTableEditorTemplateEPI
 {
-	public class EssentialsPluginTemplateConfigObject
+	public class IPTableEditorTemplateConfigObject
 	{
+		public List<IPTableObject> IPTableChanges { get; set; } 
+	}
+	
+	public class IPTableObject
+	{
+		public string IpId { get; set; }
+		public string IpAddress { get; set; }
+		public int ProgramNumber { get; set; }
 	}
 }

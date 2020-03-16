@@ -12,26 +12,26 @@ using PepperDash.Essentials.Bridges;
 using Crestron.SimplSharp.Reflection;
 using Newtonsoft.Json;
 
-namespace EssentialsPluginTemplateEPI
+namespace IPTableEditorTemplateEPI
 {
-	public static class EssentialsPluginTemplateBridge
+	public static class IPTableEditorTemplateBridge
 	{
 
-		public static void LinkToApiExt(this EssentialsPluginTemplate DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
+		public static void LinkToApiExt(this IPTableEditorTemplate DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
-			EssentialsPluginTemplateBridgeJoinMap joinMap = new EssentialsPluginTemplateBridgeJoinMap(joinStart);
+			IPTableEditorTemplateBridgeJoinMap joinMap = new IPTableEditorTemplateBridgeJoinMap(joinStart);
 
 			var JoinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
 			
 			if (!string.IsNullOrEmpty(JoinMapSerialized))
-				joinMap = JsonConvert.DeserializeObject<EssentialsPluginTemplateBridgeJoinMap>(JoinMapSerialized);
+				joinMap = JsonConvert.DeserializeObject<IPTableEditorTemplateBridgeJoinMap>(JoinMapSerialized);
 
 
 		}
 	}
-	public class EssentialsPluginTemplateBridgeJoinMap : JoinMapBase
+	public class IPTableEditorTemplateBridgeJoinMap : JoinMapBase
 	{
-		public EssentialsPluginTemplateBridgeJoinMap(uint joinStart) 
+		public IPTableEditorTemplateBridgeJoinMap(uint joinStart) 
 		{
 			OffsetJoinNumbers(joinStart);
 		}
