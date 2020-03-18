@@ -1,0 +1,58 @@
+{
+    "system": {},
+    "system_url": "http://portal-QA.devcloud.pepperdash.com/templates/0f50640b-bc89-42d5-998f-81d137d3fc98#/template_summary",
+    "template": {
+        "devices": [
+            {
+                "key": "processor",
+                "uid": 0,
+                "type": "rmc3",
+                "name": "RMC3",
+                "group": "processor",
+                "supportedConfigModes": [
+                    "compliance",
+                    "essentials"
+                ],
+                "supportedSystemTypes": [
+                    "hudType",
+                    "presType",
+                    "vtcType",
+                    "custom"
+                ],
+                "supportsCompliance": true,
+                "properties": {
+                    "numberOfComPorts": 1,
+                    "numberOfIrPorts": 2,
+                    "numberOfRelays": 2,
+                    "numberOfDIOPorts": 2
+                  }
+            },
+            {
+                "key": "IPTableEditor",
+                "uid": 1,
+                "name": "IPTableEditor",
+                "type": "IPTableEditor",
+                "group": "utilities",
+                "properties": {
+                    "IPTableChanges": [
+                        {
+                            "IpId": "0B",
+                            "IpAddress": "192.168.1.150",
+                            "ProgramNumber": 4
+                        }
+                    ]
+                }
+            }
+        ],
+        "info": {
+            "comment": "",
+            "lastModifiedDate": "2017-03-06T23:14:40.290Z",
+            "lastUid": 3,
+            "processorType": "rmc3",
+            "requiredControlSofwareVersion": "",
+            "systemType": "test"
+        },
+        "rooms": [],
+        "tieLines": []
+    }
+}
