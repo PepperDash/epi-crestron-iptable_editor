@@ -18,6 +18,5 @@ namespace IPTableEditorEPI
 		public int IpPort { get; set; }
 		public string IpAddress { get; set; }
 		public int ProgramNumber { get; set; }
-		
 	}
 }

@@ -34,20 +34,105 @@ namespace IPTableEditorEPI
 			return newMe;
 		}
 
-		string myResponse; 
+		string myResponse;
+		private bool isInitialized;
+		private int rebootCount;
+		private int rebootCountLimit = 3;
 		IPTableEditorConfigObject Config;
 		Dictionary<int, bool> RebootSlotList;
+		Dictionary<int, List<IPTableObject>> SortedMods = new Dictionary<int, List<IPTableObject>>();
 
 		public IPTableEditor(string key, string name, IPTableEditorConfigObject config)
 			: base(key, name)
 		{
 			Config = config;
 			RebootSlotList = new Dictionary<int, bool>();
-			this.CheckTables();
+			//this.CheckTables();
+			AddPostActivationAction(this.SortMods);			
 		}
 
-		public void CheckTables()
+		
+		// 2020-03-25 ERD If we get a response from a new program being started, if its a program slot that we are currently interested in, then CheckTables()
+		//if (Crestron.SimplSharp.eProgramStatusEventType[Config.IPTableChanges] = 2])
+		//foreach(var progStart in ConfigPropertiesHelpers.
+
+		//
+		
+		private void SortMods()
 		{
+			for (int i = 1; i < 11; i++) 
+			{
+				var LocalMods = new List<IPTableObject>();
+				var selected = Config.IPTableChanges.Where(item => item.ProgramNumber == i);
+				if (selected != null)
+				{
+					Config.IPTableChanges = Config.IPTableChanges.Except(selected).ToList();
+					LocalMods.AddRange(selected);
+					Debug.Console(2, this, "SortMods | Adding {0} mods to slot {1}", LocalMods.Count, i);
+					SortedMods.Add(i, LocalMods);
+				}
+				else
+				{
+					Debug.Console(2, this, "SortMods | Slot {0} had no modes}", i);
+				}
+			}
+		}
+
+
+		public void CheckTables(int slot)
+		{
+			List<IPTableObject> localIPTableObject = new List<IPTableObject>();
+			SortedMods.TryGetValue(slot, out localIPTableObject);
+			if (localIPTableObject != null)
+			{
+				foreach (var ipChange in localIPTableObject)
+				{
+					var consoleCommand = String.Format("IPT -p:{0} -I: {1} -T", ipChange.ProgramNumber, ipChange.IpId);
+					var consoleResponse = CrestronConsole.SendControlSystemCommand(consoleCommand, ref myResponse) ? myResponse : null;
+					Debug.Console(2, this, "CheckTables Response:{0}\n", myResponse);
+					var myResponseByLine = Regex.Split(myResponse, "\r\n");	// Ignore first line: CIP_ID  |Type    |Status    |DevID   |Port   |IP Address/SiteName       |Model Name          |Description         |RoomId
+					//divide the return by line
+					List<string> responseList = myResponseByLine.OfType<string>().ToList();
+					//convert the array to a list
+					responseList.RemoveRange(0, 4);
+					//Removes the first two lines - this is junk data
+					responseList.RemoveRange(responseList.Count - 2, 2);
+					//Removes the final two lines - This is junk data
+					if (responseList.Count > 0)
+					{
+						var myResponseSplit = responseList[0].Split('|');
+						var currentIPID = myResponseSplit[0].Trim();
+						var currentDeviceID = myResponseSplit[3].Trim();
+						var currentPort = myResponseSplit[4].Trim();
+						var currentIpAddress = myResponseSplit[5].Trim();
+
+						// TODO 2020-03-18 ERD : Was working on getting the DeviceID and IP Port from config to compare and write if necessary.
+
+						// Normalize entries from Config
+						// if (!String.IsNullOrEmpty(ipChange.DevID)) { } //2020-03-25 ERD Attempt to check DeviceID here instead of 'Normalizing' method'. Taken from Technics Core. Would need to set an 'editFlag'
+						var changeDeviceID = NormalizeDeviceID(ipChange.DevID);
+						//var changeIpPort = FlagIpPort(ipChange.IpPort);
+						var changeIpAddress = NormalizeIpAddress(ipChange.IpAddress);
+
+						Debug.Console(2, this, "CheckTables Current:{0} Change:{1}\n", currentIpAddress, changeIpAddress);
+						if (currentIpAddress == changeIpAddress)
+						{
+							Debug.Console(2, this, "CheckTables No Change Necessary {0}", ipChange);
+						}
+						else
+						{
+							SendIptCommand(ipChange);
+						}
+					}
+					else
+					{
+						Debug.Console(2, this, "CheckTables No Current Entry. Send IPT Command", ipChange);
+						SendIptCommand(ipChange);
+					}
+				}
+			}
+
+/*
 			foreach(var ipChange in Config.IPTableChanges)
 			{
 				var consoleCommand = String.Format("IPT -p:{0} -I: {1} -T", ipChange.ProgramNumber, ipChange.IpId);
@@ -72,6 +157,7 @@ namespace IPTableEditorEPI
 					// TODO 2020-03-18 ERD : Was working on getting the DeviceID and IP Port from config to compare and write if necessary.
 					
 					// Normalize entries from Config
+					// if (!String.IsNullOrEmpty(ipChange.DevID)) { } //2020-03-25 ERD Attempt to check DeviceID here instead of 'Normalizing' method'. Taken from Technics Core. Would need to set an 'editFlag'
 					var changeDeviceID = NormalizeDeviceID(ipChange.DevID);
 					//var changeIpPort = FlagIpPort(ipChange.IpPort);
 					var changeIpAddress = NormalizeIpAddress(ipChange.IpAddress);
@@ -92,8 +178,8 @@ namespace IPTableEditorEPI
 					SendIptCommand(ipChange);
 				}
 			}
+*/
 		}
-
 
 		private string NormalizeIpAddress(string data)
 		{
@@ -158,15 +244,16 @@ namespace IPTableEditorEPI
 				//var deviceDeclaration = !String.IsNullOrEmpty(data.DeviceId) ? String.Format("-D:{0}", data.DeviceId) : "";
 				var programDeclaration = String.Format("-P:{0}", data.ProgramNumber);
 
-				//var iptCommand = String.Format("addp {0} {1} {2} {3}", data.IpId, data.IpAddress, programDeclaration, deviceDeclaration);
-				var iptCommand = String.Format("addp {0} {1} {2}", data.IpId, data.IpAddress, programDeclaration);
-
+				////what is this? var iptCommand = String.Format("addp {0} {1} {2} {3}", data.IpId, data.IpAddress, programDeclaration, deviceDeclaration);
+				//var iptCommand = String.Format("addp {0} {1} {2}", data.IpId, data.IpAddress, programDeclaration);
+				//test reboot counting
+				var iptCommand = String.Format("addp E1 192.168.1.101 -p:4");
 				Debug.Console(2, this, "IPID Command Sent : {0}", iptCommand);
 				if (CrestronConsole.SendControlSystemCommand(iptCommand, ref ConsoleResponse))
 				{
 					if (ConsoleResponse.ToLower().Contains("restart program"))
 					{
-						Debug.Console(2, this, "Success IPT Entry Changed{0}", data);
+						Debug.Console(2, this, "Success IPT Entry Changed {0}", data);
 						if (!RebootSlotList.ContainsKey(data.ProgramNumber))
 						{
 							RebootSlotList.Add(data.ProgramNumber, true);
@@ -199,12 +286,37 @@ namespace IPTableEditorEPI
 				// would like to implement: if program is registered, issue progres -p:{0}. not sure if you can do a progres to load the new ipt
 				// if program is not registered, issue reboot command
 				// There should be a routine that prevents constantly rebooting if things dont match
-				var rebootCommand = String.Format("progres -p:{0}", RebootSlot.Key);
-				Debug.Console(2, this, "Reboot Command Sent");
-
-				if (CrestronConsole.SendControlSystemCommand(rebootCommand, ref ConsoleResponse))
+				if (rebootCount < rebootCountLimit)
 				{
+					var rebootCommand = String.Format("progres -p:{0}", RebootSlot.Key);
+					//test reboot counting
+					//var rebootCommand = String.Format("test");
+					Debug.Console(2, this, "Reboot Command Sent");
+					rebootCounter();
+
+					if (CrestronConsole.SendControlSystemCommand(rebootCommand, ref ConsoleResponse))
+					{
+					}
 				}
+				else
+				{
+					Debug.Console(0, this, "Reboot | rebootCount limit ({0}) reached", rebootCountLimit);
+				}
+			}
+		}
+
+		private void rebootCounter()
+		{
+			if (isInitialized)
+			{
+				rebootCount = rebootCount + 1;
+				Debug.Console(2, this, "rebootCounter | isInitialized | rebootCount = {0}", rebootCount);
+			}
+			else
+			{
+				isInitialized = true;
+				rebootCount = 0;
+				Debug.Console(2, this, "rebootCounter | isInitialized set to TRUE | rebootCount = {0}", rebootCount);
 			}
 		}
 	}

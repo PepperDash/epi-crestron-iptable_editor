@@ -44,3 +44,26 @@ C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPT_Editor\PDT.Utili
 C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPT_Editor\PDT.Utilities.IPT_Editor.EPI\obj\Debug\ResolveAssemblyReference.cache
 C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPT_Editor\PDT.Utilities.IPT_Editor.EPI\obj\Debug\PDT.IPTableEditor.EPI.dll
 C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPT_Editor\PDT.Utilities.IPT_Editor.EPI\obj\Debug\PDT.IPTableEditor.EPI.pdb
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PDT.IPTableEditor.EPI.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PDT.IPTableEditor.EPI.pdb
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Essentials Devices Common.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Core.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Essentials_Core.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Essentials_DM.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDashEssentials.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpNewtonsoft.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpReflectionInterface.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Lighting.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpSQLHelperInterface.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Fusion.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Shades.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.EthernetCommunications.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.DeviceSupport.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.UI.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpTimerEventInterface.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Gateways.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.GeneralIO.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.DM.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\ResolveAssemblyReference.cache
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\PDT.IPTableEditor.EPI.dll
+C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\PDT.IPTableEditor.EPI.pdb
