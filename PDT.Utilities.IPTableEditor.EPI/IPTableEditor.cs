@@ -11,13 +11,14 @@ using Newtonsoft.Json.Serialization;
 using System.Collections.Generic;
 
 using PepperDash.Essentials;
+using PepperDash.Essentials.Bridges;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Core;
 
 namespace IPTableEditorEPI 
 {
-	public class IPTableEditor : Device
+	public class IPTableEditor : Device, IBridge
 	{
 
 		public static void LoadPlugin()
@@ -41,13 +42,17 @@ namespace IPTableEditorEPI
 		IPTableEditorConfigObject Config;
 		Dictionary<int, bool> RebootSlotList;
 		Dictionary<int, List<IPTableObject>> SortedMods = new Dictionary<int, List<IPTableObject>>();
+		public Dictionary<int, bool> HasMods;
+		public Dictionary<int, BoolFeedback> HasModsFeedback;
+		
 
 		public IPTableEditor(string key, string name, IPTableEditorConfigObject config)
 			: base(key, name)
 		{
 			Config = config;
 			RebootSlotList = new Dictionary<int, bool>();
-			//this.CheckTables();
+			HasMods = new Dictionary<int, bool>();
+			HasModsFeedback = new Dictionary<int, BoolFeedback>();
 			AddPostActivationAction(this.SortMods);			
 		}
 
@@ -60,24 +65,29 @@ namespace IPTableEditorEPI
 		
 		private void SortMods()
 		{
+			HasMods.Clear();
+			HasModsFeedback.Clear();
 			for (int i = 1; i < 11; i++) 
 			{
+				HasMods.Add(i, false);
+				HasModsFeedback.Add(i, new BoolFeedback( ()=> HasMods[i]) );
 				var LocalMods = new List<IPTableObject>();
 				var selected = Config.IPTableChanges.Where(item => item.ProgramNumber == i);
 				if (selected != null)
-				{
+				{					
 					Config.IPTableChanges = Config.IPTableChanges.Except(selected).ToList();
-					LocalMods.AddRange(selected);
+					LocalMods.AddRange(selected);					
 					Debug.Console(2, this, "SortMods | Adding {0} mods to slot {1}", LocalMods.Count, i);
-					SortedMods.Add(i, LocalMods);
+					SortedMods.Add(i, LocalMods);					
 				}
 				else
 				{
 					Debug.Console(2, this, "SortMods | Slot {0} had no modes}", i);
 				}
+				HasMods[i] = LocalMods.Count > 0 ? true : false;
+				HasModsFeedback[i].FireUpdate();
 			}
 		}
-
 
 		public void CheckTables(int slot)
 		{
@@ -319,6 +329,15 @@ namespace IPTableEditorEPI
 				Debug.Console(2, this, "rebootCounter | isInitialized set to TRUE | rebootCount = {0}", rebootCount);
 			}
 		}
+
+		#region IBridge Members
+
+		public void LinkToApi(Crestron.SimplSharpPro.DeviceSupport.BasicTriList trilist, uint joinStart, string joinMapKey)
+		{
+			this.LinkToApiExt(trilist, joinStart, joinMapKey);
+		}
+
+		#endregion
 	}
 }
 

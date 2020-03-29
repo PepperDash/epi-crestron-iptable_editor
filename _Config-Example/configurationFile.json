@@ -39,6 +39,40 @@
                             "IpId": "0B",
                             "IpAddress": "192.168.1.150",
                             "ProgramNumber": 4
+                        },
+                        {
+                            "IpId": "0C",
+                            "IpAddress": "192.168.1.151",
+                            "ProgramNumber": 4
+                        }
+                        ,
+                        {
+                            "IpId": "1C",
+                            "IpAddress": "192.168.1.160",
+                            "ProgramNumber": 5
+                        }
+                    ]
+                }
+            },
+            {
+                "key": "IPTableEditor-Bridge",
+                "uid": 3,
+                "name": "IP Table Editor-Bridge",
+                "group": "api",
+                "type": "eiscApi",
+                "properties": {
+                    "control": {
+                        "tcpSshProperties": {
+                            "address": "127.0.0.2",
+                            "port": 0
+                        },
+                        "ipid": "A0",
+                        "method": "ipidTcp"
+                    },
+                    "devices": [
+                        {
+                            "deviceKey": "IPTableEditor",
+                            "joinStart": 1
                         }
                     ]
                 }

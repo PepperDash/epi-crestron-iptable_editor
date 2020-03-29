@@ -14,36 +14,40 @@ using Newtonsoft.Json;
 
 namespace IPTableEditorEPI
 {
-	public static class IPTableEditorBridge
+	public static class IPTableEditorApiExtensions
 	{
 
-		public static void LinkToApiExt(this IPTableEditor DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
+		public static void LinkToApiExt(this IPTableEditor IptDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
-			IPTableEditorTemplateBridgeJoinMap joinMap = new IPTableEditorTemplateBridgeJoinMap(joinStart);
+			IPTableEditorTemplateBridgeJoinMap joinMap = new IPTableEditorTemplateBridgeJoinMap();
 
 			var JoinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
 			
 			if (!string.IsNullOrEmpty(JoinMapSerialized))
 				joinMap = JsonConvert.DeserializeObject<IPTableEditorTemplateBridgeJoinMap>(JoinMapSerialized);
 
-
+			joinMap.OffsetJoinNumbers(joinStart);
+			Debug.Console(2, IptDevice, "Bridge | JoinStart: {0}", joinStart);
+			Debug.Console(1, IptDevice, "Bridge | Linking To Trilist: {0}", trilist.ID.ToString("X"));
+			for (int i = 0; i < 10; i++)
+			{
+				trilist.SetSigTrueAction( (ushort)(joinMap.CheckTable + i), () => {IptDevice.CheckTables(i + 1);} );
+				IptDevice.HasModsFeedback[i + 1].LinkInputSig(trilist.BooleanInput[ (ushort)(joinMap.CheckTable + 1)] );
+			}
 		}
 	}
 	public class IPTableEditorTemplateBridgeJoinMap : JoinMapBase
 	{
-		public IPTableEditorTemplateBridgeJoinMap(uint joinStart) 
+		public uint CheckTable { get; set; }
+		public IPTableEditorTemplateBridgeJoinMap() 
 		{
-			OffsetJoinNumbers(joinStart);
+			CheckTable = 1;
 		}
 
 		public override void OffsetJoinNumbers(uint joinStart)
 		{
-            GetType()
-                .GetCType()
-                .GetProperties()
-                .Where(x => x.PropertyType == typeof(uint))
-                .ToList()
-                .ForEach(prop => prop.SetValue(this, (uint)prop.GetValue(this, null) + joinStart - 1, null));
+			var Offset = joinStart - 1;
+			CheckTable += Offset;
 		}
 
 	}
