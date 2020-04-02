@@ -31,8 +31,20 @@ namespace IPTableEditorEPI
 			Debug.Console(1, IptDevice, "Bridge | Linking To Trilist: {0}", trilist.ID.ToString("X"));
 			for (int i = 0; i < 10; i++)
 			{
-				trilist.SetSigTrueAction( (ushort)(joinMap.CheckTable + i), () => {IptDevice.CheckTables(i + 1);} );
-				IptDevice.HasModsFeedback[i + 1].LinkInputSig(trilist.BooleanInput[ (ushort)(joinMap.CheckTable + 1)] );
+				var join = (uint)(joinMap.CheckTable + i);
+				var slot = i + 1;
+				Debug.Console(2, IptDevice, "Linking join {0} to slot {1}", join, slot);
+				//trilist.BooleanInput[((ushort)(joinMap.CheckTable + ))].BoolValue = IptDevice.HasMods[i];
+				var programSlot = IptDevice.ProgramSlots[slot];
+				if(programSlot != null)
+				{
+					 programSlot.HasModsFeedback.LinkInputSig(trilist.BooleanInput[join]);
+					trilist.SetSigTrueAction(join, () => { 
+					Debug.Console(2, IptDevice, "Attempting to CheckTables for slot {0}", slot );
+					IptDevice.CheckTableTrigger(slot);
+				
+					});
+				}
 			}
 		}
 	}

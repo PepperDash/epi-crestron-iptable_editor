@@ -4,6 +4,7 @@ using System.Linq;
 
 using Crestron.SimplSharp;                          				// For Basic SIMPL# Classes
 using Crestron.SimplSharpPro;                       				// For Basic SIMPL#Pro classes
+using Crestron.SimplSharpPro.Diagnostics;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -36,70 +37,96 @@ namespace IPTableEditorEPI
 		}
 
 		string myResponse;
-		private bool isInitialized;
-		private int rebootCount;
-		private int rebootCountLimit = 3;
 		IPTableEditorConfigObject Config;
 		Dictionary<int, bool> RebootSlotList;
-		Dictionary<int, List<IPTableObject>> SortedMods = new Dictionary<int, List<IPTableObject>>();
-		public Dictionary<int, bool> HasMods;
-		public Dictionary<int, BoolFeedback> HasModsFeedback;
-		
+		//Dictionary<int, List<IPTableObject>> SortedMods = new Dictionary<int, List<IPTableObject>>();
+		//public Dictionary<int, bool> HasMods;
+		//public Dictionary<int, BoolFeedback> HasModsFeedback;
+		//public Dictionary<int, bool> NeedsCheckTables;
+		public Dictionary<int, ProgramSlot> ProgramSlots { get; private set; }
 
 		public IPTableEditor(string key, string name, IPTableEditorConfigObject config)
 			: base(key, name)
 		{
 			Config = config;
 			RebootSlotList = new Dictionary<int, bool>();
-			HasMods = new Dictionary<int, bool>();
-			HasModsFeedback = new Dictionary<int, BoolFeedback>();
-			AddPostActivationAction(this.SortMods);			
+			ProgramSlots = new Dictionary<int, ProgramSlot>();
+	
+			SortMods();
+			SystemMonitor.ProgramChange += new ProgramStateChangeEventHandler(SystemMonitor_ProgramChange);
 		}
 
-		
-		// 2020-03-25 ERD If we get a response from a new program being started, if its a program slot that we are currently interested in, then CheckTables()
-		//if (Crestron.SimplSharp.eProgramStatusEventType[Config.IPTableChanges] = 2])
-		//foreach(var progStart in ConfigPropertiesHelpers.
-
-		//
-		
+		void SystemMonitor_ProgramChange(Program sender, ProgramEventArgs args)
+		{
+			if (args.EventType == eProgramChangeEventType.OperatingState)
+			{
+				if (args.OperatingState == eProgramOperatingState.Start)
+				{
+					var startedProgram = (int)args.ProgramNumber;
+					if (ProgramSlots[startedProgram].NeedsCheckTables == true)
+					{
+						CheckTables(startedProgram);
+					}
+				}
+			}
+		}
+	
 		private void SortMods()
 		{
-			HasMods.Clear();
-			HasModsFeedback.Clear();
+
+			ProgramSlots.Clear();
 			for (int i = 1; i < 11; i++) 
 			{
-				HasMods.Add(i, false);
-				HasModsFeedback.Add(i, new BoolFeedback( ()=> HasMods[i]) );
+				var slot = i;
+				var programSlot = new ProgramSlot();
+				ProgramSlots.Add(slot, programSlot);
+				programSlot.HasMods = false;
+				programSlot.HasModsFeedback =  new BoolFeedback(() => 
+					{
+						Debug.Console(2, this, "the value of i is: {0} in HasModsFeedbackFunc", slot);
+						if (ProgramSlots.ContainsKey(slot))
+							return programSlot.HasMods;
+						else
+						{
+							Debug.Console(2, this, "Unable to find key '{0}' in HasMods", slot);
+							return false;
+						}
+
+					});
 				var LocalMods = new List<IPTableObject>();
-				var selected = Config.IPTableChanges.Where(item => item.ProgramNumber == i);
-				if (selected != null)
+				List<IPTableObject> selected = Config.IPTableChanges.Where(item => item.ProgramNumber == slot).ToList();
+				if (selected != null && selected.Count() > 0)
 				{					
 					Config.IPTableChanges = Config.IPTableChanges.Except(selected).ToList();
-					LocalMods.AddRange(selected);					
-					Debug.Console(2, this, "SortMods | Adding {0} mods to slot {1}", LocalMods.Count, i);
-					SortedMods.Add(i, LocalMods);					
+					LocalMods.AddRange(selected);
+					Debug.Console(2, this, "SortMods | Adding {0} mods to slot {1}", LocalMods.Count, slot);
+					programSlot.SortedMods = LocalMods;
+					programSlot.HasMods = programSlot.SortedMods.Count > 0 ? true : false;
+					programSlot.HasModsFeedback.FireUpdate();
 				}
 				else
 				{
-					Debug.Console(2, this, "SortMods | Slot {0} had no modes}", i);
+					Debug.Console(2, this, "SortMods | Slot {0} had no mods", slot);
 				}
-				HasMods[i] = LocalMods.Count > 0 ? true : false;
-				HasModsFeedback[i].FireUpdate();
 			}
 		}
 
 		public void CheckTables(int slot)
 		{
-			List<IPTableObject> localIPTableObject = new List<IPTableObject>();
-			SortedMods.TryGetValue(slot, out localIPTableObject);
+			if (slot < 1 || slot > 10)
+				return;
+
+			ProgramSlots[slot].NeedsCheckTables = true;
+			List<string> commandList = new List<string>();
+			var localIPTableObject = ProgramSlots[slot].SortedMods;
+			Debug.Console(2, this, "CheckTables | Checking Slot:{0}", slot);
 			if (localIPTableObject != null)
 			{
 				foreach (var ipChange in localIPTableObject)
 				{
 					var consoleCommand = String.Format("IPT -p:{0} -I: {1} -T", ipChange.ProgramNumber, ipChange.IpId);
 					var consoleResponse = CrestronConsole.SendControlSystemCommand(consoleCommand, ref myResponse) ? myResponse : null;
-					Debug.Console(2, this, "CheckTables Response:{0}\n", myResponse);
+					Debug.Console(2, this, "CheckTables | Response:{0}\n", myResponse);
 					var myResponseByLine = Regex.Split(myResponse, "\r\n");	// Ignore first line: CIP_ID  |Type    |Status    |DevID   |Port   |IP Address/SiteName       |Model Name          |Description         |RoomId
 					//divide the return by line
 					List<string> responseList = myResponseByLine.OfType<string>().ToList();
@@ -116,86 +143,64 @@ namespace IPTableEditorEPI
 						var currentPort = myResponseSplit[4].Trim();
 						var currentIpAddress = myResponseSplit[5].Trim();
 
-						// TODO 2020-03-18 ERD : Was working on getting the DeviceID and IP Port from config to compare and write if necessary.
-
 						// Normalize entries from Config
-						// if (!String.IsNullOrEmpty(ipChange.DevID)) { } //2020-03-25 ERD Attempt to check DeviceID here instead of 'Normalizing' method'. Taken from Technics Core. Would need to set an 'editFlag'
-						var changeDeviceID = NormalizeDeviceID(ipChange.DevID);
-						//var changeIpPort = FlagIpPort(ipChange.IpPort);
 						var changeIpAddress = NormalizeIpAddress(ipChange.IpAddress);
 
-						Debug.Console(2, this, "CheckTables Current:{0} Change:{1}\n", currentIpAddress, changeIpAddress);
+						Debug.Console(2, this, "CheckTables | IPID:{0} :: Current IPA:{1} :: Requested IPA:{2}", ipChange.IpId, currentIpAddress, changeIpAddress);
 						if (currentIpAddress == changeIpAddress)
 						{
-							Debug.Console(2, this, "CheckTables No Change Necessary {0}", ipChange);
+							Debug.Console(2, this, "CheckTables | No Change Necessary for IPID:{0} on Slot:{0}", ipChange.IpId, ipChange.ProgramNumber);							
 						}
 						else
 						{
-							SendIptCommand(ipChange);
+							var cmd = BuildIptCommand(ipChange);
+							if (!string.IsNullOrEmpty(cmd))
+							{
+								commandList.Add(cmd);
+							}
 						}
 					}
 					else
 					{
-						Debug.Console(2, this, "CheckTables No Current Entry. Send IPT Command", ipChange);
-						SendIptCommand(ipChange);
+						Debug.Console(2, this, "CheckTables | No Current Entry for IPID:{0} on Slot:{0}. Send IPT Command", ipChange.IpId, ipChange.ProgramNumber);
+						var cmd = BuildIptCommand(ipChange);
+						if (!string.IsNullOrEmpty(cmd))
+						{
+							commandList.Add(cmd);
+						}
 					}
 				}
-			}
-
-/*
-			foreach(var ipChange in Config.IPTableChanges)
-			{
-				var consoleCommand = String.Format("IPT -p:{0} -I: {1} -T", ipChange.ProgramNumber, ipChange.IpId);
-				var consoleResponse = CrestronConsole.SendControlSystemCommand(consoleCommand, ref myResponse) ? myResponse : null;
-				Debug.Console(2, this, "CheckTables Response:{0}\n", myResponse);
-				var myResponseByLine = Regex.Split(myResponse,"\r\n");	// Ignore first line: CIP_ID  |Type    |Status    |DevID   |Port   |IP Address/SiteName       |Model Name          |Description         |RoomId
-				//divide the return by line
-				List<string> responseList = myResponseByLine.OfType<string>().ToList();
-				//convert the array to a list
-				responseList.RemoveRange(0, 4);
-				//Removes the first two lines - this is junk data
-				responseList.RemoveRange(responseList.Count - 2, 2);
-				//Removes the final two lines - This is junk data
-				if (responseList.Count > 0)
+				if (commandList.Count > 0)
 				{
-					var myResponseSplit = responseList[0].Split('|');
-					var currentIPID = myResponseSplit[0].Trim();
-					var currentDeviceID = myResponseSplit[3].Trim();
-					var currentPort = myResponseSplit[4].Trim();
-					var currentIpAddress = myResponseSplit[5].Trim();
-					
-					// TODO 2020-03-18 ERD : Was working on getting the DeviceID and IP Port from config to compare and write if necessary.
-					
-					// Normalize entries from Config
-					// if (!String.IsNullOrEmpty(ipChange.DevID)) { } //2020-03-25 ERD Attempt to check DeviceID here instead of 'Normalizing' method'. Taken from Technics Core. Would need to set an 'editFlag'
-					var changeDeviceID = NormalizeDeviceID(ipChange.DevID);
-					//var changeIpPort = FlagIpPort(ipChange.IpPort);
-					var changeIpAddress = NormalizeIpAddress(ipChange.IpAddress);
+					commandList.Add(string.Format("progres -p:{0}", slot));
+					SendCommandList(commandList, slot);
+				}
+				else if (commandList.Count == 0)
+				{
+					Debug.Console(2, this, "Setting Hasmods {0} to false", slot);
 
-					Debug.Console(2, this, "CheckTables Current:{0} Change:{1}\n", currentIpAddress, changeIpAddress);
-					if (currentIpAddress == changeIpAddress)
-					{
-						Debug.Console(2, this, "CheckTables No Change Necessary {0}", ipChange);
-					}
+					if (ProgramSlots.ContainsKey(slot))
+						ProgramSlots[slot].HasMods = false;
 					else
-					{
-						SendIptCommand(ipChange);
-					}
-				}
-				else
-				{
-					Debug.Console(2, this, "CheckTables No Current Entry. Send IPT Command", ipChange);
-					SendIptCommand(ipChange);
+						Debug.Console(2, this, "No '{0}' Key found in HasMods", slot);
+
+					Debug.Console(2, this, "Firing HasModsFeedback {0}", slot);
+
+					if (ProgramSlots.ContainsKey(slot))
+						ProgramSlots[slot].HasModsFeedback.FireUpdate();
+					else
+						Debug.Console(2, this, "No '{0}' Key found in HasModsFeedback", slot);
+
+					Debug.Console(2, this, "Fired HasMods Feedback {0}", slot);
 				}
 			}
-*/
 		}
 
 		private string NormalizeIpAddress(string data)
 		{
 			//Normalizes all ip addresses to utilize three digits in each octet
 			//Passes hostnames directly out without manipulation
-			Debug.Console(2, this, "Normalize Address Input = {0}", data);
+			Debug.Console(2, this, "NormalizeIpAddress | Input = {0}", data);
 			//remove "(not resolved)" from unresolved hostnames in the IPTable entry list.
 			data = Regex.Replace(data, @"\(([^)]*)\)$", "");
 
@@ -209,13 +214,13 @@ namespace IPTableEditorEPI
 					if (!charArray.All(char.IsDigit))
 					{
 						//If an index contains a non-numeric character, it's a hostname
-						Debug.Console(2, this, "Normalize Address Return = {0}", data);
+						Debug.Console(2, this, "NormalizeIpAddress | Return = {0}", data);
 						return data;
 					}
 					if (myOctets[i].Length > 3)
 					{
 						//If an index has more than three digits, it's a hostname
-						Debug.Console(2, this, "Normalize Address Return = {0}", data);
+						Debug.Console(2, this, "NormalizeIpAddress | Return = {0}", data);
 						return data;
 					}
 					else
@@ -223,111 +228,48 @@ namespace IPTableEditorEPI
 						myOctets[i] = myOctets[i].PadLeft(3, '0');
 				}
 				var myReturn = string.Join(".", myOctets.ToArray());
-				Debug.Console(2, this, "Normalize Address Return = {0}", myReturn);
+				Debug.Console(2, this, "NormalizeIpAddress | Return = {0}", myReturn);
 				return myReturn;
 			}
 			else
-				Debug.Console(2, this, "Normalize Address Return = {0}", data);
+				Debug.Console(2, this, "NormalizeIpAddress | Return = {0}", data);
 			return data;
 		}
 
-		private string NormalizeDeviceID(string data)
-		{
-			// If DeviceID is not present, assume 00
-			Debug.Console(2, this, "Normalize DeviceID");
-			if (String.IsNullOrEmpty(data))
-			{
-				return("00");
-			}
-			else
-			{
-				return(data);
-			}
-		}
-
-		private void SendIptCommand(IPTableObject data)
+		private string BuildIptCommand(IPTableObject data)
 		{
 			if (data != null)
 			{
-				string ConsoleResponse = "";
-
-				//var deviceDeclaration = !String.IsNullOrEmpty(data.DeviceId) ? String.Format("-D:{0}", data.DeviceId) : "";
-				var programDeclaration = String.Format("-P:{0}", data.ProgramNumber);
-
-				////what is this? var iptCommand = String.Format("addp {0} {1} {2} {3}", data.IpId, data.IpAddress, programDeclaration, deviceDeclaration);
-				//var iptCommand = String.Format("addp {0} {1} {2}", data.IpId, data.IpAddress, programDeclaration);
-				//test reboot counting
-				var iptCommand = String.Format("addp E1 192.168.1.101 -p:4");
-				Debug.Console(2, this, "IPID Command Sent : {0}", iptCommand);
-				if (CrestronConsole.SendControlSystemCommand(iptCommand, ref ConsoleResponse))
-				{
-					if (ConsoleResponse.ToLower().Contains("restart program"))
-					{
-						Debug.Console(2, this, "Success IPT Entry Changed {0}", data);
-						if (!RebootSlotList.ContainsKey(data.ProgramNumber))
-						{
-							RebootSlotList.Add(data.ProgramNumber, true);
-						}
-					}
-					else if (ConsoleResponse.ToLower().Contains("error"))
-					{
-						Debug.Console(0, this, "{0}", ConsoleResponse);
-					}
-					if (RebootSlotList.Count > 0)
-					{
-						Debug.Console(2, this, "Success RebootSlotListCount > 0");
-						Reboot();
-					}
-					else
-					{
-						Debug.Console(2, this, "Fail RebootSlotListCount");
-					}
-				}
-			}
-		}
-
-		private void Reboot()
-		{
-			Debug.Console(2, this, "Running Reboot Routine");
-			string ConsoleResponse = "";
-
-			foreach (var RebootSlot in RebootSlotList)
-			{
-				// would like to implement: if program is registered, issue progres -p:{0}. not sure if you can do a progres to load the new ipt
-				// if program is not registered, issue reboot command
-				// There should be a routine that prevents constantly rebooting if things dont match
-				if (rebootCount < rebootCountLimit)
-				{
-					var rebootCommand = String.Format("progres -p:{0}", RebootSlot.Key);
-					//test reboot counting
-					//var rebootCommand = String.Format("test");
-					Debug.Console(2, this, "Reboot Command Sent");
-					rebootCounter();
-
-					if (CrestronConsole.SendControlSystemCommand(rebootCommand, ref ConsoleResponse))
-					{
-					}
-				}
-				else
-				{
-					Debug.Console(0, this, "Reboot | rebootCount limit ({0}) reached", rebootCountLimit);
-				}
-			}
-		}
-
-		private void rebootCounter()
-		{
-			if (isInitialized)
-			{
-				rebootCount = rebootCount + 1;
-				Debug.Console(2, this, "rebootCounter | isInitialized | rebootCount = {0}", rebootCount);
+				var programDeclaration = string.Format("-P:{0}", data.ProgramNumber);
+				var iptCommand = string.Format("addp {0} {1} {2}", data.IpId, data.IpAddress, programDeclaration);
+				return iptCommand;
 			}
 			else
 			{
-				isInitialized = true;
-				rebootCount = 0;
-				Debug.Console(2, this, "rebootCounter | isInitialized set to TRUE | rebootCount = {0}", rebootCount);
+				return string.Empty;
 			}
+		}
+
+		private void SendCommandList(List<string> data, int ProgramNumber)
+		{
+			foreach (string iptCommand in data)
+			{
+				string ConsoleResponse = string.Empty;
+				Debug.Console(2, this, "SendCommandList | IPID Command Sent : {0}", iptCommand);
+				if (CrestronConsole.SendControlSystemCommand(iptCommand, ref ConsoleResponse))
+				{
+					if (ConsoleResponse.ToLower().Contains("error"))
+					{
+						Debug.Console(0, this, "SendCommandList | Fail! {0}", ConsoleResponse);
+					}
+				}
+			}
+		}
+
+		public void CheckTableTrigger(int slot)
+		{
+			ProgramSlots[slot].NeedsCheckTables = true;
+			CheckTables(slot);
 		}
 
 		#region IBridge Members
@@ -338,6 +280,20 @@ namespace IPTableEditorEPI
 		}
 
 		#endregion
+	}
+
+	public class ProgramSlot
+	{
+		public List<IPTableObject> SortedMods { get; set; }
+		public bool HasMods { get;  set; }
+		public BoolFeedback HasModsFeedback { get; set; }
+		public bool NeedsCheckTables { get; set; }
+
+		public ProgramSlot()
+		{
+			SortedMods = new List<IPTableObject>();
+			NeedsCheckTables = false;
+		}
 	}
 }
 
