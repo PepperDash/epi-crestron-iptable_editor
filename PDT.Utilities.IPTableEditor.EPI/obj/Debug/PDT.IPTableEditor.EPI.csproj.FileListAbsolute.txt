@@ -67,3 +67,26 @@ C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Ut
 C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\ResolveAssemblyReference.cache
 C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\PDT.IPTableEditor.EPI.dll
 C:\Crestron\Framework\PepperDash\Essentials - EPI\Utilities-IPTableEditor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\PDT.IPTableEditor.EPI.pdb
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\PDT.IPTableEditor.EPI.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PDT.IPTableEditor.EPI.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PDT.IPTableEditor.EPI.pdb
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Essentials Devices Common.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Core.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Essentials_Core.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Essentials_DM.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDashEssentials.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpNewtonsoft.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpReflectionInterface.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Lighting.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpSQLHelperInterface.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Fusion.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Shades.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.EthernetCommunications.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.DeviceSupport.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.UI.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpTimerEventInterface.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Gateways.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.GeneralIO.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.DM.dll
+C:\Users\JTA\Documents\Stash Folder\FMAC\SLN001-MPR\_EssentialsPlugins\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\PDT.IPTableEditor.EPI.pdb

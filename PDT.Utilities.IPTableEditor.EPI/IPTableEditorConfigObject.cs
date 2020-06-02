@@ -9,7 +9,9 @@ namespace IPTableEditorEPI
 {
 	public class IPTableEditorConfigObject
 	{
-		public List<IPTableObject> IPTableChanges { get; set; } 
+		public List<IPTableObject> IPTableChanges { get; set; }
+		[JsonProperty("runAtStartup")]
+		public bool RunAtStartup { get; set; } 
 	}
 	
 	public class IPTableObject
@@ -28,5 +30,7 @@ namespace IPTableEditorEPI
 
 		[JsonProperty("programNumber")]
 		public int ProgramNumber { get; set; }
+
+
 	}
 }

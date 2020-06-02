@@ -54,6 +54,16 @@ namespace IPTableEditorEPI
 	
 			SortMods();
 			SystemMonitor.ProgramChange += new ProgramStateChangeEventHandler(SystemMonitor_ProgramChange);
+			if (config.RunAtStartup)
+			{
+				for (int i = 1; i < 10; i++)
+				{
+					var localI = i;
+					CheckTableTrigger(localI);
+				}
+			
+			}
+
 		}
 
 		void SystemMonitor_ProgramChange(Program sender, ProgramEventArgs args)
