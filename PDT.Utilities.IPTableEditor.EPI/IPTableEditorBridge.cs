@@ -17,35 +17,9 @@ namespace IPTableEditorEPI
 	public static class IPTableEditorApiExtensions
 	{
 
-		public static void LinkToApiExt(this IPTableEditor IptDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
+		public static void LinkToApiExt(this IpTableEditor IptDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
-			IPTableEditorTemplateBridgeJoinMap joinMap = new IPTableEditorTemplateBridgeJoinMap();
-
-			var JoinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
 			
-			if (!string.IsNullOrEmpty(JoinMapSerialized))
-				joinMap = JsonConvert.DeserializeObject<IPTableEditorTemplateBridgeJoinMap>(JoinMapSerialized);
-
-			joinMap.OffsetJoinNumbers(joinStart);
-			Debug.Console(2, IptDevice, "Bridge | JoinStart: {0}", joinStart);
-			Debug.Console(1, IptDevice, "Bridge | Linking To Trilist: {0}", trilist.ID.ToString("X"));
-			for (int i = 0; i < 10; i++)
-			{
-				var join = (uint)(joinMap.CheckTable + i);
-				var slot = i + 1;
-				Debug.Console(2, IptDevice, "Linking join {0} to slot {1}", join, slot);
-				//trilist.BooleanInput[((ushort)(joinMap.CheckTable + ))].BoolValue = IptDevice.HasMods[i];
-				var programSlot = IptDevice.ProgramSlots[slot];
-				if(programSlot != null)
-				{
-					 programSlot.HasModsFeedback.LinkInputSig(trilist.BooleanInput[join]);
-					trilist.SetSigTrueAction(join, () => { 
-					Debug.Console(2, IptDevice, "Attempting to CheckTables for slot {0}", slot );
-					IptDevice.CheckTableTrigger(slot);
-				
-					});
-				}
-			}
 		}
 	}
 	public class IPTableEditorTemplateBridgeJoinMap : JoinMapBase
