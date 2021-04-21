@@ -1,5 +1,5 @@
-# PDT.EssentialsPluginTemplate.EPI
-
+![PepperDash Logo](/images/logo_pdt_no_tagline_600.png)
+# IP Table Editor Plugin
 
 ## IP Table Editor Plugin Configuration
 ```json
