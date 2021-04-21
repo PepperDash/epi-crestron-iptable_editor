@@ -1,0 +1,25 @@
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\IPTableEditor.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\IPTableEditor.pdb
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Essentials Devices Common.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Core.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Essentials_Core.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDash_Essentials_DM.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\PepperDashEssentials.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpNewtonsoft.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpReflectionInterface.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Lighting.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpSQLHelperInterface.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Fusion.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Shades.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Remotes.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.EthernetCommunications.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.ThreeSeriesCards.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.DeviceSupport.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.UI.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\SimplSharpTimerEventInterface.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.Gateways.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.GeneralIO.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\bin\Debug\Crestron.SimplSharpPro.DM.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\ResolveAssemblyReference.cache
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\IPTableEditor.dll
+C:\_pdt-github\PD-Engineering\epi-iptable_editor\PDT.Utilities.IPTableEditor.EPI\obj\Debug\IPTableEditor.pdb

@@ -28,50 +28,61 @@
                   }
             },
             {
-                "key": "IPTableEditor",
+                "key": "iptable-editor1-plugin",
                 "uid": 1,
-                "name": "IPTableEditor",
-                "type": "IPTableEditor",
+                "name": "IP Table Editor",
+                "type": "iptableeditor",
                 "group": "utilities",
                 "properties": {
-                    "IPTableChanges": [
+                    "runAtStartup": false,
+                    "ipTableChanges": [
                         {
-                            "IpId": "0B",
-                            "IpAddress": "192.168.1.150",
-                            "ProgramNumber": 4
+                            "name": "TP01 - Remappable",
+                            "ipId": "11",
+                            "ipAddress": "127.0.0.1",
+                            "devId": "11",
+                            "programNumber": 10
                         },
                         {
-                            "IpId": "0C",
-                            "IpAddress": "192.168.1.151",
-                            "ProgramNumber": 4
-                        }
-                        ,
+                            "name": "TP01 Xpanel - Remappable",
+                            "ipId": "21",
+                            "ipAddress": "127.0.0.1",
+                            "devId": "21",
+                            "programNumber": 10
+                        },
                         {
-                            "IpId": "1C",
-                            "IpAddress": "192.168.1.160",
-                            "ProgramNumber": 5
+                            "name": "TCP Client 1",
+                            "ipId": "81",
+                            "ipAddress": "192.168.1.151",                            
+                            "programNumber": 10
+                        },
+                        {
+                            "name": "UDP Client 1",
+                            "ipId": "91",
+                            "ipAddress": "192.168.1.152",                            
+                            "programNumber": 10
                         }
                     ]
                 }
             },
             {
-                "key": "IPTableEditor-Bridge",
+                "key": "essentials-device-bridge1",
                 "uid": 3,
-                "name": "IP Table Editor-Bridge",
+                "name": "Essentials Device Bridge",
                 "group": "api",
-                "type": "eiscApi",
+                "type": "eiscApiAdvanced",
                 "properties": {
                     "control": {
                         "tcpSshProperties": {
                             "address": "127.0.0.2",
                             "port": 0
                         },
-                        "ipid": "A0",
+                        "ipid": "B1",
                         "method": "ipidTcp"
                     },
                     "devices": [
                         {
-                            "deviceKey": "IPTableEditor",
+                            "deviceKey": "iptable-editor1-plugin",
                             "joinStart": 1
                         }
                     ]

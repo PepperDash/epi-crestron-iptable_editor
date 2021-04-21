@@ -1,102 +1,73 @@
 # PDT.EssentialsPluginTemplate.EPI
 
 
-## Config Example 
+## IP Table Editor Plugin Configuration
 ```json
-
+{
+    "key": "iptable-editor1-plugin",
+    "uid": 1,
+    "name": "IP Table Editor",
+    "type": "iptableeditor",
+    "group": "utilities",
+    "properties": {
+        "runAtStartup": false,
+        "ipTableChanges": [
             {
-                "key": "IPTableEditor",
-                "uid": 1,
-                "name": "IPTableEditor",
-                "type": "IPTableEditor",
-                "group": "utilities",
-                "properties": {
-                    "RunAtStartup": true,
-                    "IPTableChanges": [
-                        {
-                            "IpId": "0B",
-                            "IpAddress": "192.168.1.150",
-                            "ProgramNumber": 4
-                        },
-                        {
-                            "IpId": "0C",
-                            "IpAddress": "192.168.1.151",
-                            "ProgramNumber": 4
-                        }
-                        ,
-                        {
-                            "IpId": "1C",
-                            "IpAddress": "192.168.1.160",
-                            "ProgramNumber": 5
-                        }
-                    ]
-                }
+                "name": "TP01 - Remappable",
+                "ipId": "11",
+                "ipAddress": "127.0.0.1",
+                "devId": "11",
+                "programNumber": 10
             },
-            // Note when "RunAtStartup": true bridge is not required. 
             {
-                "key": "IPTableEditor-Bridge",
-                "uid": 3,
-                "name": "IP Table Editor-Bridge",
-                "group": "api",
-                "type": "eiscApi",
-                "properties": {
-                    "control": {
-                        "tcpSshProperties": {
-                            "address": "127.0.0.2",
-                            "port": 0
-                        },
-                        "ipid": "A0",
-                        "method": "ipidTcp"
-                    },
-                    "devices": [
-                        {
-                            "deviceKey": "IPTableEditor",
-                            "joinStart": 1
-                        }
-                    ]
-                }
+                "name": "TP01 Xpanel - Remappable",
+                "ipId": "21",
+                "ipAddress": "127.0.0.1",
+                "devId": "21",
+                "programNumber": 10
+            },
+            {
+                "name": "TCP Client 1",
+                "ipId": "81",
+                "ipAddress": "192.168.1.151",
+                "ipPort": 23,
+                "programNumber": 10
+            },
+            {
+                "name": "UDP Client 1",
+                "ipId": "91",
+                "ipAddress": "192.168.1.152",  
+                "ipPort": 5000,                          
+                "programNumber": 10
             }
+        ]
+    }
+}
 ```
-
-
-``` C#
-	public class IPTableEditorConfigObject
-	{
-		public List<IPTableObject> IPTableChanges { get; set; } 
-	}
-	
-	public class IPTableObject
-	{
-		[JsonProperty("ipId")]
-		public string IpId { get; set; }
-
-		[JsonProperty("devId")]
-		public string DevID { get; set; }
-
-		[JsonProperty("ipPort")]
-		public int IpPort { get; set; }
-
-		[JsonProperty("ipAddress")]
-		public string IpAddress { get; set; }
-
-		[JsonProperty("programNumber")]
-		public int ProgramNumber { get; set; }
-	}
-``` 
-
-``` C#
-	public class IPTableEditorTemplateBridgeJoinMap : JoinMapBase
-	{
-		public uint CheckTable { get; set; }
-		public IPTableEditorTemplateBridgeJoinMap() 
-		{
-			CheckTable = 1;
-		}
-
-		public override void OffsetJoinNumbers(uint joinStart)
-		{
-			var Offset = joinStart - 1;
-			CheckTable += Offset;
-		}
-,,,
-
+## Essentials Device Bridge
+Note when "RunAtStartup": true bridge is not required. 
+```json
+{
+    "key": "essentials-device-bridge1",
+    "uid": 3,
+    "name": "Essentials Device Bridge",
+    "group": "api",
+    "type": "eiscApiAdvanced",
+    "properties": {
+        "control": {
+            "tcpSshProperties": {
+                "address": "127.0.0.2",
+                "port": 0
+            },
+            "ipid": "A0",
+            "method": "ipidTcp"
+        },
+        "devices": [
+            {
+                "deviceKey": "iptable-editor1-plugin",
+                "joinStart": 1
+            }
+        ]
+    }
+}
+```
