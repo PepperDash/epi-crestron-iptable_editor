@@ -6,6 +6,9 @@
 SPlsWork/
 *.projectinfo
 
+## Nuget 
+packagaes/
+
 ## Panel Files
 *.ASV
 *.ced
