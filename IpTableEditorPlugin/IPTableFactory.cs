@@ -28,11 +28,14 @@ namespace IPTableEditorPlugin
         {
 			Debug.Console(1, "[{0}] Factory Attempting to create new device from type: {1}", dc.Key, dc.Type);
 
+		    var comm = CommFactory.CreateCommForDevice(dc);
+
 			// get the plugin device properties configuration object & check for null 
 			var propertiesConfig = dc.Properties.ToObject<IpTableEditorConfigObject>();
 			if (propertiesConfig != null)
 			{
-				return new IpTableEditor(dc.Key, dc.Name, dc);				
+
+                return comm == null ? new IpTableEditor(dc.Key, dc.Name, dc) : new IpTableEditor(dc.Key, dc.Name, dc, comm);			
 			}
 
 			Debug.Console(0, "[{0}] Factory: failed to read properties config for {1}", dc.Key, dc.Name);

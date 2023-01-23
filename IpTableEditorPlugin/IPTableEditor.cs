@@ -3,9 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
+using Crestron.SimplSharp.Ssh;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Diagnostics;
 using Newtonsoft.Json;
@@ -13,6 +16,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
+using Feedback = PepperDash.Essentials.Core.Feedback;
 
 namespace IPTableEditorPlugin 
 {
@@ -21,12 +25,33 @@ namespace IPTableEditorPlugin
 
 		string _myResponse;
 	    readonly IpTableEditorConfigObject _config;
-		Dictionary<int, bool> _rebootSlotList;
+        private readonly ReadOnlyDictionary<int, IpTableObjectBase> _mutableIpTableObjects;
+	    public Dictionary<int, bool> IpTableObjectActive { get; set; }
+        private readonly IpTableObjectBase _persistentIpTableObject;
+        public IntFeedback IntSelectedFeedback { get; set; }
+
+        private int IntFeedbackBacker { get; set; }
+
+	    public IBasicCommunication Comm;
+	    public ISocketStatus SocketStatus;
+	    public CommunicationGather PortGather;
 		//Dictionary<int, List<IPTableConfigObject>> SortedMods = new Dictionary<int, List<IPTableConfigObject>>();
 		//public Dictionary<int, bool> HasMods;
 		//public Dictionary<int, BoolFeedback> HasModsFeedback;
 		//public Dictionary<int, bool> NeedsCheckTables;
 		public Dictionary<int, ProgramSlot> ProgramSlots { get; private set; }
+
+        private CrestronQueue Queue { get; set; }
+
+	    //private CTimer _connectionTimer;
+
+        private const string Delimiter =  "\x0D\x0A";
+
+	    private int _selecting = 0;
+
+        public FeedbackCollection<Feedback> Feedbacks { get; set; }
+
+        private List<IpTableObjectBase> CurrentEntries { get; set; } 
 
 		public IpTableEditor(string key, string name, DeviceConfig dc)
 			: base(key, name)
@@ -34,11 +59,10 @@ namespace IPTableEditorPlugin
             var config = JsonConvert.DeserializeObject<IpTableEditorConfigObject>(dc.Properties.ToString());
 
 			_config = config;
-			_rebootSlotList = new Dictionary<int, bool>();
 			ProgramSlots = new Dictionary<int, ProgramSlot>();
 	
 			SortMods();
-			SystemMonitor.ProgramChange += new ProgramStateChangeEventHandler(SystemMonitor_ProgramChange);
+			SystemMonitor.ProgramChange += SystemMonitor_ProgramChange;
 		    if (!config.RunAtStartup) return;
 		    for (var i = 1; i < 10; i++)
 		    {
@@ -46,6 +70,273 @@ namespace IPTableEditorPlugin
 		        CheckTableTrigger(localI);
 		    }
 		}
+
+        public IpTableEditor(string key, string name, DeviceConfig dc, IBasicCommunication comm)
+            : base(key, name)
+        {
+
+            Debug.Console(0, this, "Constructor with Comm!");
+            var config = JsonConvert.DeserializeObject<IpTableEditorConfigObject>(dc.Properties.ToString());
+
+            _config = config;
+
+            Queue = new CrestronQueue(100);
+
+            Comm = comm;
+            SocketStatus = Comm as ISocketStatus;
+            if (SocketStatus != null)
+            {
+                SocketStatus.ConnectionChange += SocketStatus_ConnectionChange;
+            }
+
+            IntSelectedFeedback = new IntFeedback(() => IntFeedbackBacker);
+
+            _mutableIpTableObjects = new ReadOnlyDictionary<int, IpTableObjectBase>(_config.SelectableEntries);
+            CurrentEntries = new List<IpTableObjectBase>();
+            _persistentIpTableObject = _config.PersistentEntry;
+
+            PortGather = new CommunicationGather(Comm, (Delimiter + Delimiter));
+            PortGather.LineReceived += PortGather_LineReceived;
+            Feedbacks = new FeedbackCollection<Feedback>();
+            IpTableObjectActive = new Dictionary<int, bool>();
+            foreach (var item in _mutableIpTableObjects)
+            {
+                var i = item;
+                IpTableObjectActive.Add(i.Key, false);
+                Feedbacks.Add((new BoolFeedback(i.Value.IpId, () => IpTableObjectActive[i.Key])));
+            }
+            if (_persistentIpTableObject != null)
+                AddPersistentEntry();
+            else
+            {
+                PollIpTable();
+            }
+        }
+
+        void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        {
+            Debug.Console(0, this, "Data Received on port : {0}", e.Text);
+
+            var data = e.Text.Trim();
+            if (data.ToLower().Contains("ip table")) ProcessIpTable(data);
+            if(!Queue.IsEmpty)
+                DequeueCmd(Queue);
+        }
+
+	    void ProcessIpTable(string data)
+	    {
+            Debug.Console(0, this, "Process IP Table");
+	        var lines = Regex.Split(data, (Delimiter));
+	        if (lines.Length <= 0) return;
+	        var currentTable = new List<IpTableObjectBase>();
+            foreach (var line in lines)
+            {
+                if (!line.Contains("|")) continue;
+                if (!line.ToLower().Contains("cip_id"))
+                {
+	                Debug.Console(0, this, "Parsing Line : {0}", line);
+                    var chunks = line.Split('|');
+                    currentTable.Add(new IpTableObjectBase
+                    {
+                        IpAddress = !String.IsNullOrEmpty(chunks[5]) ? chunks[5].Trim() : "",
+                        IpId = !String.IsNullOrEmpty(chunks[0]) ? chunks[0].Trim() : "",
+                        RoomId = !String.IsNullOrEmpty(chunks[8]) ? chunks[8].Trim() : ""
+                    });
+                }
+            }
+            Debug.Console(0, this, "There are {0} Entries in the ip table", currentTable.Count);
+            CurrentEntries = currentTable;
+            Debug.Console(0, this, "CurrentEntries");
+
+            foreach (var item in CurrentEntries)
+            {
+                Debug.Console(0, this, "Ipid : {0} | IpAddress : {1} | RoomId : {2}", item.IpId, item.IpAddress, item.RoomId ?? "N/A");
+            }
+            CompareEntries();
+
+	    }
+
+        private void CompareEntries()
+        {
+            Debug.Console(0, this, "CompareEntries");
+
+            var tempDict = new Dictionary<int, bool>();
+
+            foreach (var item in _mutableIpTableObjects)
+            {
+                var i = item;
+                var linkedItem = CurrentEntries.FirstOrDefault(o => o.IpId == i.Value.IpId);
+                var present = linkedItem != null;
+                Debug.Console(0, this,"Feedback Entry {0} is {1}", i.Key, present);
+                tempDict.Add(i.Key, linkedItem != null);
+                if (present) IntFeedbackBacker = i.Key;
+            }
+            IpTableObjectActive = tempDict;
+            UpdateFeedbacks();
+        }
+
+        private void UpdateFeedbacks()
+        {
+            foreach (var feedback in Feedbacks)
+            {
+                var f = feedback;
+                f.FireUpdate();
+                Debug.Console(0, this, "Feedback {0} = {1}", f.Key, f.BoolValue);
+            }
+            IntSelectedFeedback.FireUpdate();
+
+        }
+
+        void SocketStatus_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        {
+            Debug.Console(0, this, "ConnectionChange = {0}", e.Client.IsConnected ? "Connected" : "Disconnected");
+
+            //_connectionTimer = null;
+            if (!e.Client.IsConnected) return;
+            //_connectionTimer = new CTimer(o => Comm.Disconnect(), 15000);
+            Debug.Console(0, this, "Selecting = {0}", _selecting);
+            if (_selecting != 0)
+            {
+                SwapEntry(_selecting);
+            }
+            if (Queue.IsEmpty) return;
+            Debug.Console(0, this, "Queue is not empty - has {0} elements", Queue.Count);
+            DequeueCmd(Queue);
+        }
+
+	    public void SelectEntry(int index)
+	    {
+            Debug.Console(0, this, "Select Entry = {0}", index);
+
+	        if (!SocketStatus.IsConnected)
+	        {
+                _selecting = index;
+	            Comm.Connect();
+	        }
+	        else
+	        {
+	            _selecting = index;
+                SwapEntry(index);
+	        }
+	    }
+
+	    public void SwapEntry(int index)
+	    {
+	        var removalList = CurrentEntries.Where(entry => entry.IpId != _persistentIpTableObject.IpId && entry.IpId != _mutableIpTableObjects[index].IpId).ToList();
+
+            AddEntry(_mutableIpTableObjects[index], true);
+            RemoveMultipleEntries(removalList, false);
+
+	    }
+
+	    private void ClearAndAdd(int index)
+	    {
+            _selecting = 0;
+	        IpTableObjectBase newEntry;
+	        _mutableIpTableObjects.TryGetValue(index, out newEntry);
+	        if (newEntry == null)
+	        {
+	            Debug.Console(0, this, "Invalid Entry {0} Selected", index);
+	            return;
+	        }
+            Debug.Console(0, this, "Clear and add {0}", index);
+            ClearTable();
+            AddMultipleEntries(new List<IpTableObjectBase>()
+            {
+                _persistentIpTableObject,
+                _mutableIpTableObjects[index]
+            }, true);
+	    }
+
+	    public void PollIpTable()
+	    {
+            EnqueueCmd("ipt -t", Queue);
+	    }
+
+	    private void RemoveEntry(IpTableObjectBase entry, bool suppressPoll)
+	    {
+	        var cmd = String.Format("remm {0} {1} {2}", entry.IpId, entry.IpAddress, entry.RoomId);
+	        EnqueueCmd(cmd, Queue);
+	        if (suppressPoll) return;
+            PollIpTable();
+	    }
+
+	    private void AddEntry(IpTableObjectBase entry, bool suppressPoll)
+	    {
+	        var cmd = String.Format("addm {0} {1} {2}", entry.IpId, entry.IpAddress, entry.RoomId);
+	        EnqueueCmd(cmd, Queue);
+	        if (suppressPoll) return;
+            PollIpTable();
+	    }
+
+        private void RemoveMultipleEntries(IEnumerable<IpTableObjectBase> entries, bool suppressPoll)
+        {
+            foreach (var cmd in entries.Select(entry => String.Format("remm {0} {1} {2}", entry.IpId, entry.IpAddress, entry.RoomId)))
+            {
+                EnqueueCmd(cmd, Queue);
+            }
+            if (suppressPoll) return;
+            PollIpTable();
+        }
+
+
+
+        private void AddMultipleEntries(IEnumerable<IpTableObjectBase> entries, bool suppressPoll)
+	    {
+	        foreach (var cmd in entries.Select(entry => String.Format("addm {0} {1} {2}", entry.IpId, entry.IpAddress, entry.RoomId)))
+	        {
+	            EnqueueCmd(cmd, Queue);
+	        }
+            if (suppressPoll) return;
+	        PollIpTable();
+	    }
+
+	    private void AddPersistentEntry()
+	    {
+	        AddEntry(_persistentIpTableObject, false);
+	    }
+
+	    private void ClearTable()
+	    {
+            EnqueueCmd("ipt -c", Queue);
+	    }
+
+	    private void EnqueueCmd(string cmd, CrestronQueue queue)
+	    {
+            Debug.Console(0, this, "Enqueued Cmd : {0}", cmd);
+	        queue.Enqueue(cmd);
+	        if (!SocketStatus.IsConnected)
+	        {
+                Debug.Console(0, this, "Command Enqueued - Connecting Socket!");
+	            Comm.Connect();
+	            return;
+	        }
+            Debug.Console(0, this, "Command Enqueued and Socket Already Connected!");
+	        CheckQueue(queue);
+	    }
+
+	    private void CheckQueue(CrestronQueue queue)
+	    {
+	        if (!queue.IsEmpty)
+	        {
+	            DequeueCmd(queue);
+	        }
+	    }
+
+	    private void DequeueCmd(CrestronQueue queue)
+	    {
+            Debug.Console(0, this, "Dequeueing Command");
+	        var cmd = queue.Dequeue() as string;
+            Debug.Console(0, this, "Command is : {0}", cmd);
+            SendCmd(cmd);
+	    }
+
+	    public void SendCmd(string data)
+	    {
+
+	        var cmd = string.Format("{0}{1}", data, Delimiter);
+	        Comm.SendText(cmd);
+	    }
 
 		void SystemMonitor_ProgramChange(Program sender, ProgramEventArgs args)
 		{
@@ -267,40 +558,61 @@ namespace IPTableEditorPlugin
 		/// <param name="bridge"></param>
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new IpTableEditorBridgeJoinMap(joinStart);
+		    if (Comm == null)
+		    {
+                var joinMap = new IpTableEditorBridgeJoinMap(joinStart);
+                if (bridge != null)
+                    bridge.AddJoinMap(Key, joinMap);
 
-			// This adds the join map to the collection on the bridge
-			if (bridge != null)
-			{
-				bridge.AddJoinMap(Key, joinMap);
-			}
+                var customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
+                if (customJoins != null)
+                    joinMap.SetCustomJoinData(customJoins);
 
-            var joinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
+		        Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+		        Debug.Console(0, this, "Linking to Bridge Type {0}", GetType().Name);
 
-			var customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-			if (customJoins != null)
-			{
-				joinMap.SetCustomJoinData(customJoins);
-			}
+		        for (int i = 0; i < 10; i++)
+		        {
+		            var join = (uint) (joinMap.CheckTable.JoinNumber + i);
+		            var slot = i + 1;
+		            Debug.Console(1, this, "Linking join {0} to slot {1}", join, slot);
+		            //trilist.BooleanInput[((ushort)(joinMap.CheckTable + ))].BoolValue = IptDevice.HasMods[i];
+		            var programSlot = ProgramSlots[slot];
+		            if (programSlot == null) continue;
+		            programSlot.HasModsFeedback.LinkInputSig(trilist.BooleanInput[@join]);
+		            trilist.SetSigTrueAction(@join, () =>
+		            {
+		                Debug.Console(1, this, "Attempting to CheckTables for slot {0}", slot);
+		                CheckTableTrigger(slot);
+		            });
+		        }
+		    }
+		    else
+		    {
 
-            Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-			Debug.Console(0, this, "Linking to Bridge Type {0}", GetType().Name);
+                var joinMap = new IpTableSelectorBridgeJoinMap(joinStart, _mutableIpTableObjects.Count);
+                if (bridge != null)
+                    bridge.AddJoinMap(Key, joinMap);
 
-            for (int i = 0; i < 10; i++)
-            {
-                var join = (uint)(joinMap.CheckTable.JoinNumber + i);
-                var slot = i + 1;
-                Debug.Console(1, this, "Linking join {0} to slot {1}", join, slot);
-                //trilist.BooleanInput[((ushort)(joinMap.CheckTable + ))].BoolValue = IptDevice.HasMods[i];
-                var programSlot = ProgramSlots[slot];
-                if (programSlot == null) continue;
-                programSlot.HasModsFeedback.LinkInputSig(trilist.BooleanInput[@join]);
-                trilist.SetSigTrueAction(@join, () =>
-                {
-                    Debug.Console(1, this, "Attempting to CheckTables for slot {0}", slot);
-                    CheckTableTrigger(slot);
-                });
-            }
+                var customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
+                if (customJoins != null)
+                    joinMap.SetCustomJoinData(customJoins);
+
+		        foreach (var item in _mutableIpTableObjects)
+		        {
+		            var i = item;
+		            trilist.SetSigTrueAction((UInt16)(joinMap.SelectItemBool.JoinNumber + i.Key - 1), () => SelectEntry(i.Key));
+
+		            var fb = Feedbacks[i.Value.IpId] as BoolFeedback;
+		            if (fb == null) continue;
+                    fb.LinkInputSig(trilist.BooleanInput[(uint)(joinMap.SelectItemBool.JoinNumber + i.Key - 1)]);
+		        }
+
+		        trilist.SetUShortSigAction(joinMap.SelectItemAnalog.JoinNumber, (a) => SelectEntry(a));
+                IntSelectedFeedback.LinkInputSig(trilist.UShortInput[joinMap.SelectItemAnalog.JoinNumber]);
+
+
+		    }
         }
     }
 
