@@ -197,7 +197,7 @@ namespace IPTableEditorPlugin
             Debug.Console(0, this, "Selecting = {0}", _selecting);
             if (_selecting != 0)
             {
-                SwapEntry(_selecting);
+                ClearAndAdd(_selecting);
             }
             if (Queue.IsEmpty) return;
             Debug.Console(0, this, "Queue is not empty - has {0} elements", Queue.Count);
@@ -216,7 +216,7 @@ namespace IPTableEditorPlugin
 	        else
 	        {
 	            _selecting = index;
-                SwapEntry(index);
+                ClearAndAdd(index);
 	        }
 	    }
 
@@ -245,7 +245,7 @@ namespace IPTableEditorPlugin
             {
                 _persistentIpTableObject,
                 _mutableIpTableObjects[index]
-            }, true);
+            }, false);
 	    }
 
 	    public void PollIpTable()
@@ -601,16 +601,17 @@ namespace IPTableEditorPlugin
 		        foreach (var item in _mutableIpTableObjects)
 		        {
 		            var i = item;
-		            trilist.SetSigTrueAction((UInt16)(joinMap.SelectItemBool.JoinNumber + i.Key - 1), () => SelectEntry(i.Key));
+                    trilist.SetSigTrueAction((UInt16)(joinMap.SelectItemBool.JoinNumber + i.Key - 1), () => ClearAndAdd(i.Key));
 
 		            var fb = Feedbacks[i.Value.IpId] as BoolFeedback;
 		            if (fb == null) continue;
                     fb.LinkInputSig(trilist.BooleanInput[(uint)(joinMap.SelectItemBool.JoinNumber + i.Key - 1)]);
 		        }
 
-		        trilist.SetUShortSigAction(joinMap.SelectItemAnalog.JoinNumber, (a) => SelectEntry(a));
+                trilist.SetUShortSigAction(joinMap.SelectItemAnalog.JoinNumber, (a) => ClearAndAdd(a));
                 IntSelectedFeedback.LinkInputSig(trilist.UShortInput[joinMap.SelectItemAnalog.JoinNumber]);
 
+		        trilist.OnlineStatusChange += (o, a) => UpdateFeedbacks();
 
 		    }
         }
