@@ -51,7 +51,7 @@ namespace IPTableEditorPlugin
 
         public FeedbackCollection<Feedback> Feedbacks { get; set; }
 
-        private List<IpTableObjectBase> CurrentEntries { get; set; } 
+        private List<IpTableObjectBase> CurrentEntries { get; set; }
 
 		public IpTableEditor(string key, string name, DeviceConfig dc)
 			: base(key, name)
@@ -423,6 +423,16 @@ namespace IPTableEditorPlugin
 		            var currentDeviceId = myResponseSplit[3].Trim();
 		            var currentPort = myResponseSplit[4].Trim();
 		            var currentIpAddress = myResponseSplit[5].Trim();
+
+                    if (currentIpAddress.Contains("("))
+                    {
+                        Debug.Console(2, this, "CheckTables | Found parentheses in hostname: {0}", currentIpAddress);
+
+                        var hostnameSplit = currentIpAddress.Split('(');
+                        currentIpAddress = hostnameSplit[0];
+
+                        Debug.Console(2, this, "CheckTables | Sanitized hostname: {0}", currentIpAddress);
+                    }
 
 		            // Normalize entries from Config
 		            var changeIpAddress = NormalizeIpAddress(ipChange.IpAddress);
