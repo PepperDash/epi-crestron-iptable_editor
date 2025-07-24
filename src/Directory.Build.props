@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <Version>1.0.0-local</Version>
+    <InformationalVersion>$(Version)</InformationalVersion>
+    <Authors>PepperDash Technology</Authors>
+    <Company>PepperDash Technology</Company>
+    <Product>PepperDash Essentials Plugin</Product>
+    <Copyright>Copyright © 2025</Copyright>
+    <RepositoryUrl>https://github.com/PepperDash/epi-crestron-iptable_editor</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Crestron; 3series</PackageTags>
+    <PackageOutputPath>..\output</PackageOutputPath>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageLicenseFile>License.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\License.txt" Pack="true" PackagePath=""/>
+    <None Include="..\README.md" Pack="true" PackagePath=""/>
+  </ItemGroup>
+</Project>
