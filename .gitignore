@@ -1,13 +1,33 @@
 # PepperDash Gitignore file 
 # v00.01 2016-07-11
 
-## SiMPL Compiled Files
+## SIMPL# and SIMPL#Pro Compiled Files
 *SPls*/
 SPlsWork/
 *.projectinfo
+*.dll
+*.pdb
+*.exe
+*.mdb
+*.bin
+*.out
+*.obj
+*.user
+*.suo
+*.cache
+*.log
 
-## Nuget 
-packagaes/
+## NuGet 
+packages/
+*.nupkg
+*.snupkg
+*.nuspec
+project.lock.json
+project.fragment.lock.json
+artifacts/
+.nuget/
+*.vspscc
+*.vssscc
 
 ## Panel Files
 *.ASV
@@ -20,3 +40,41 @@ packagaes/
 **/*.c3prj
 *.vtp.asv
 *.hash
+
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.VC.opendb
+ipch/
+*.dbmdl
+
+## Build Results
+[Bb]in/
+[Oo]bj/
+TestResults/
+*.Build.csdef
+*.builds
+
+## Rider
+.idea/
+*.sln.iml
+
+## ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+## Others
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+
+# End of file
