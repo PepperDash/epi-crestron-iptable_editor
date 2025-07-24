@@ -7,6 +7,8 @@ The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enab
 
 ***Point of Clarification*** The SIMPL Windows application must previously include an IP ID entry for every IP ID revision required and the device IP ID must have the `remap` option enabled. This EPI tool dynamically enables IP ID entries and updates IP addresses. It does not create IP ID entires or move an IP ID from one ID to another. 
 
+![Screenshot](/images/IP-ID-Remap.png)
+
 ## Features
 - **Runtime IP Table Editing:** Modify IP address, IP-ID, port, and program assignment for supported devices.
 - **SIMPL Windows Bridge Integration:** Exposes join map for control and feedback via Essentials Device Bridge (EISC).
