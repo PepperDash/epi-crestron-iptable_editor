@@ -16,7 +16,7 @@ The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enab
 - **Startup Automation:** Optionally applies changes automatically at startup or via bridge commands.
 - **Diagnostics:** Feedback joins for table status and change operations.
 
-## Use Case
+## Use Cases
 This EPI is ideal for:
 - Commissioning and service scenarios where device network assignments change frequently.
 - Commissioning standard control code solutions with configurable design variations.
