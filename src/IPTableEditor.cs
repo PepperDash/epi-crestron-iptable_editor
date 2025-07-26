@@ -76,7 +76,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 
 			SystemMonitor.ProgramChange += SystemMonitor_ProgramChange;
 			if (!_config.RunAtStartup) return;
-			for (var i = 1; i < 10; i++)
+			for (var i = 1; i <= 10; i++)
 			{
 				var localI = i;
 				CheckTableTrigger(localI);
@@ -261,7 +261,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				return;
 			}
 			Debug.Console(0, this, "Clear and add {0}", index);
-			ClearTable();
+			ClearTable(index);
 			AddMultipleEntries(new List<IpTableObjectBase>()
 			{
 				_persistentIpTableObject,
@@ -269,8 +269,8 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			}, false);
 		}
 
-	/// <inheritdoc/>
-	public void PollIpTable()
+		/// <inheritdoc/>
+		public void PollIpTable()
 		{
 			EnqueueCmd("ipt -t", Queue);
 		}
@@ -318,9 +318,11 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			AddEntry(_persistentIpTableObject, false);
 		}
 
-		private void ClearTable()
+		private void ClearTable(int programSlot)
 		{
-			EnqueueCmd("ipt -c", Queue);
+			var cmd = string.Format("ipt -p:{0} -c", programSlot);
+			Debug.Console(0, this, "Clearing IP table for program slot {0}", programSlot);
+			EnqueueCmd(cmd, Queue);
 		}
 
 		private void EnqueueCmd(string cmd, CrestronQueue queue)
@@ -337,7 +339,14 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			if (!SocketStatus.IsConnected)
 			{
 				Debug.Console(0, this, "Command Enqueued - Connecting Socket!");
-				Comm.Connect();
+				try
+				{
+					Comm.Connect();
+				}
+				catch (Exception ex)
+				{
+					Debug.Console(0, this, "Failed to connect: {0}", ex.Message);
+				}
 				return;
 			}
 			Debug.Console(0, this, "Command Enqueued and Socket Already Connected!");
@@ -369,8 +378,34 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				return;
 			}
 
-			var cmd = string.Format("{0}{1}", data, Delimiter);
-			Comm.SendText(cmd);
+			if (SocketStatus != null && !SocketStatus.IsConnected)
+			{
+				Debug.Console(0, this, "Cannot send command - socket not connected");
+				return;
+			}
+
+			try
+			{
+				var cmd = string.Format("{0}{1}", data, Delimiter);
+				Comm.SendText(cmd);
+				Debug.Console(1, this, "Command sent successfully: {0}", data);
+			}
+			catch (Exception ex)
+			{
+				Debug.Console(0, this, "Failed to send command '{0}': {1}", data, ex.Message);
+				// If send fails, try to reconnect on next command
+				if (SocketStatus != null && SocketStatus.IsConnected)
+				{
+					try
+					{
+						Comm.Disconnect();
+					}
+					catch (Exception disconnectEx)
+					{
+						Debug.Console(1, this, "Error during disconnect: {0}", disconnectEx.Message);
+					}
+				}
+			}
 		}
 
 		void SystemMonitor_ProgramChange(Program sender, ProgramEventArgs args)
@@ -388,7 +423,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 		{
 
 			ProgramSlots.Clear();
-			for (var i = 1; i < 11; i++) 
+			for (var i = 1; i <= 10; i++)  // <- Include Slot 10
 			{
 				var slot = i;
 				var programSlot = new ProgramSlot();

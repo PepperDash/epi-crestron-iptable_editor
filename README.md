@@ -9,6 +9,7 @@ This repo contains a plugin for use with [PepperDash Essentials](https://github.
 Provided under MIT license
 
 ## Overview
+
 The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enables dynamic runtime editing and management of Crestron IP Table entries for devices such as touchpanels, XPanels, and network clients. This plugin operates in **two distinct modes** based on the presence of communication configuration:
 
 ### **Editor Mode** (configuration does not include `control` object)
@@ -16,10 +17,11 @@ The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enab
 - **Use Case**: Direct control of the host processor's IP table for local device management
 - **Configuration**: Uses `ipTableChanges` array without `control` object, see example below
 
-### **Selector Mode** (configuration includes `control` object)
+### **Selector Mode** (configuration includes `control` object) - **🚧 WORK IN PROGRESS 🚧**
 - **Purpose**: Manages IP table entries on a **remote device** via SSH/TCP communication
 - **Use Case**: One control processor remotely managing another processor's or touchpanel's IP table
 - **Configuration**: Uses `selectableEntries` and `persistentEntry` with `control` object, see example below
+- **Status**: ⚠️ This mode is currently under development and may not function as expected
 
 ***Important*** This plugin modifies existing IP table entries only. All IP-IDs must be pre-defined in SIMPL Windows with the `remap` option enabled. It cannot create new IP-IDs or change IP-ID assignments.
 
@@ -32,11 +34,12 @@ The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enab
 - **Batch Operations:** Apply multiple IP table changes via `ipTableChanges` configuration
 - **Startup Automation:** Optionally applies changes automatically at startup
 
-### **Selector Mode Features**  
+### **Selector Mode Features** - **🚧 WIP 🚧**
 - **Remote IP Table Management:** Control IP tables on remote devices via SSH/TCP communication
 - **Dynamic Selection:** Choose between predefined IP table configurations
 - **Persistent Entries:** Maintain always-active IP table entries alongside selectable ones
 - **Real-time Feedback:** Monitor remote device IP table status and changes
+- **⚠️ Note:** This mode is currently under active development
 
 ### **Common Features**
 - **SIMPL Windows Bridge Integration:** Exposes join map for control and feedback via Essentials Device Bridge (EISC)
@@ -57,6 +60,7 @@ The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enab
 - Centralized IP table management across multiple devices
 - Remote commissioning and service operations
 - Systems requiring API-driven or user-selectable IP configurations
+- **⚠️ Note:** Remote mode functionality is currently under development
 
 ## SIMPL EISC Bridge Map
 The bridge join map **varies depending on the operational mode** (Editor vs Selector). The plugin automatically selects the appropriate join map based on the presence of the `control` object in configuration.
@@ -151,8 +155,25 @@ Used when managing IP table entries on the **local control processor**. No `cont
 }
 ```
 
-### **Selector Mode Configuration** (Remote IP Table Management)
+#### **`runAtStartup` Configuration Option**
+The `runAtStartup` property controls automatic IP table updates in **Editor Mode only**:
+
+- **`"runAtStartup": true`**: IP table changes are automatically applied **once** when the EPI initializes (during processor boot or Essentials app restart)
+- **`"runAtStartup": false`**: IP table changes must be manually triggered via bridge joins or API calls
+
+**Important Limitations:**
+- ⚠️ **One-time operation**: `runAtStartup` only applies changes at EPI initialization - it does **not** monitor program slots for resets
+- ⚠️ **Editor Mode only**: This option has no effect in Selector Mode (remote communication)
+- ⚠️ **Manual monitoring**: If programs restart after EPI initialization, you must manually trigger IP table checks via bridge joins (1-10) or reset the program slot the EPI resides in
+
+**Use Cases:**
+- `true`: Fixed configurations that should be set once at system startup
+- `false`: Dynamic configurations requiring manual/programmatic control
+
+### **Selector Mode Configuration** (Remote IP Table Management) - **🚧 WIP 🚧**
 Used when managing IP table entries on a **remote device** via communication. Requires `control` object and uses `selectableEntries`.
+
+**⚠️ Important:** This configuration mode is currently under development and may not function as expected.
 
 ```json
 {
@@ -201,7 +222,9 @@ Used when managing IP table entries on a **remote device** via communication. Re
 }
 ```
 ## Essentials Device Bridge Configuration
-The bridge configuration is the same for both modes. Note: when `runAtStartup: true` is set, the bridge is not required for Editor mode functionality.
+The bridge configuration is the same for both modes. 
+
+**Note:** When `runAtStartup: true` is set in Editor Mode, the bridge is not required for the automatic startup functionality, but may still be useful for manual triggering of IP table checks.
 
 ```json
 {
@@ -236,9 +259,12 @@ The bridge configuration is the same for both modes. Note: when `runAtStartup: t
 | **Communication** | No `control` object | Requires `control` object |
 | **IP Entries** | Uses `ipTableChanges` array | Uses `selectableEntries` dictionary |
 | **Target Device** | Local processor | Remote device via SSH/TCP |
+| **Program Slot** | Uses `programNumber` per entry | Uses `SelectEntry` index for operations |
 | **Bridge Map** | `IpTableEditorBridgeJoinMap` | `IpTableSelectorBridgeJoinMap` |
 | **Join Functionality** | Program slot triggers (1-10) | Entry selection (dynamic span) |
 | **Persistent Entries** | Not supported | Optional via `persistentEntry` |
+| **`runAtStartup`** | Applies changes once at EPI startup | No effect (selection required) |
+| **Ongoing Monitoring** | Manual triggers only (no automatic monitoring) | Manual selection required |
 
 ## Public API Reference
 

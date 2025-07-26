@@ -64,29 +64,6 @@
                         }
                     ]
                 }
-            },
-            {
-                "key": "essentials-device-bridge1",
-                "uid": 3,
-                "name": "Essentials Device Bridge",
-                "group": "api",
-                "type": "eiscApiAdvanced",
-                "properties": {
-                    "control": {
-                        "tcpSshProperties": {
-                            "address": "127.0.0.2",
-                            "port": 0
-                        },
-                        "ipid": "B1",
-                        "method": "ipidTcp"
-                    },
-                    "devices": [
-                        {
-                            "deviceKey": "iptable-editor1-plugin",
-                            "joinStart": 1
-                        }
-                    ]
-                }
             }
         ],
         "info": {
