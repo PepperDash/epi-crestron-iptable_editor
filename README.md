@@ -1,16 +1,22 @@
 ![PepperDash Logo](/images/essentials-plugin-blue.png)
 
-# IP Table Editor Plugin
+# PepperDash Essentials TCP/IP Table Editor
+
+This repo contains a plugin for use with [PepperDash Essentials](https://github.com/PepperDash/Essentials). 
+
+## License
+
+Provided under MIT license
 
 ## Overview
-The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enables dynamic, runtime editing and management of Crestron IP Table entries for devices such as touchpanels, XPanels, and network clients. This plugin operates in **two distinct modes** based on the presence of communication configuration:
+The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enables dynamic runtime editing and management of Crestron IP Table entries for devices such as touchpanels, XPanels, and network clients. This plugin operates in **two distinct modes** based on the presence of communication configuration:
 
-### **Editor Mode** (JSON configuration does not include `control` object)
+### **Editor Mode** (configuration does not include `control` object)
 - **Purpose**: Manages IP table entries on the **local control processor** where the plugin is running
 - **Use Case**: Direct control of the host processor's IP table for local device management
 - **Configuration**: Uses `ipTableChanges` array without `control` object, see example below
 
-### **Selector Mode** (JSON configuration includes `control` object)
+### **Selector Mode** (configuration includes `control` object)
 - **Purpose**: Manages IP table entries on a **remote device** via SSH/TCP communication
 - **Use Case**: One control processor remotely managing another processor's or touchpanel's IP table
 - **Configuration**: Uses `selectableEntries` and `persistentEntry` with `control` object, see example below
@@ -39,13 +45,13 @@ The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enab
 
 ## Use Cases
 
-### **Editor Mode Use Cases**
+### **Editor Mode**
 - Local IP table management on the host control processor
 - Commissioning scenarios where local device assignments need updates
 - Batch IP table changes during system startup or configuration
 - Direct control of the processor's own IP table entries
 
-### **Selector Mode Use Cases**  
+### **Selector Mode**  
 - One control processor managing remote touchpanel or processor IP tables
 - Hot-swappable device scenarios (e.g., backup touchpanels with different IP assignments)
 - Centralized IP table management across multiple devices
@@ -103,14 +109,6 @@ Uses `IpTableSelectorBridgeJoinMap` for entry selection:
 | serial-o (Input/Triggers) | I/O | serial-i (Feedback)  |
 |---------------------------|-----|----------------------|
 | _Not Used_                | -   | _Not Used_           |
-
-## License
-
-Provided under MIT license
-
-# PepperDash Essentials Utilities Route Cycle Plugin (c) 2023
-
-This repo contains a plugin for use with [PepperDash Essentials](https://github.com/PepperDash/Essentials). 
 
 ## Configuration Examples
 
@@ -305,22 +303,9 @@ The bridge configuration is the same for both modes. Note: when `runAtStartup: t
 ### Events
 - _No public events are defined in this plugin._
 
-## Github Actions
-
-This repo contains two Github Action workflows that will build this project automatically. Modify the SOLUTION_PATH and SOLUTION_FILE environment variables as needed. Any branches named `feature/*`, `release/*`, `hotfix/*` or `development` will automatically be built with the action and create a release in the repository with a version number based on the latest release on the master branch. If there are no releases yet, the version number will be 0.0.1. The version number will be modified based on what branch triggered the build:
-
-- `feature` branch builds will be tagged with an `alpha` descriptor, with the Action run appended: `0.0.1-alpha-1`
-- `development` branch builds will be tagged with a `beta` descriptor, with the Action run appended: `0.0.1-beta-2`
-- `release` branches will be tagged with an `rc` descriptor, with the Action run appended: `0.0.1-rc-3`
-- `hotfix` branch builds will be tagged with a `hotfix` descriptor, with the Action run appended: `0.0.1-hotfix-4`
-
-Builds on the `Main` branch will ONLY be triggered by manually creating a release using the web interface in the repository. They will be versioned with the tag that is created when the release is created. The tags MUST take the form `major.minor.revision` to be compatible with the build process. A tag like `v0.1.0-alpha` is NOT compatible and may result in the build process failing.
-
-If you have any questions about the action, contact [Andrew Welker](mailto:awelker@pepperdash.com) or [Neil Dorin](mailto:ndorin@pepperdash.com).
-
 ## Dependencies
 
-The [Essentials](https://github.com/PepperDash/Essentials) libraries are required. They referenced via nuget. You must have nuget.exe installed and in the `PATH` environment variable to use the following command. Nuget.exe is available at [nuget.org](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe).
+The [Essentials](https://github.com/PepperDash/Essentials) libraries are required and are referenced via nuget. You must have nuget.exe installed and in the `PATH` environment variable to use the below command. Nuget.exe is available at [nuget.org](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe).
 
 ### Installing Dependencies
 
