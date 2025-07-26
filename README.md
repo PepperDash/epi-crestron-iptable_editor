@@ -3,56 +3,106 @@
 # IP Table Editor Plugin
 
 ## Overview
-The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enables dynamic, runtime editing and management of Crestron IP Table entries for devices such as touchpanels, XPanels, and network clients. This plugin is designed for use in environments where device IP addresses, IP-IDs, or related network parameters may need to be updated without reloading the entire program or recompiling SIMPL Windows.
+The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enables dynamic, runtime editing and management of Crestron IP Table entries for devices such as touchpanels, XPanels, and network clients. This plugin operates in **two distinct modes** based on the presence of communication configuration:
 
-***Point of Clarification*** The SIMPL Windows application must previously include an IP ID entry for every IP ID revision required and the device IP ID must have the `remap` option enabled. This EPI tool dynamically enables IP ID entries and updates IP addresses. It does not create IP ID entires or move an IP ID from one ID to another. 
+### **Editor Mode** (JSON configuration does not include `control` object)
+- **Purpose**: Manages IP table entries on the **local control processor** where the plugin is running
+- **Use Case**: Direct control of the host processor's IP table for local device management
+- **Configuration**: Uses `ipTableChanges` array without `control` object, see example below
+
+### **Selector Mode** (JSON configuration includes `control` object)
+- **Purpose**: Manages IP table entries on a **remote device** via SSH/TCP communication
+- **Use Case**: One control processor remotely managing another processor's or touchpanel's IP table
+- **Configuration**: Uses `selectableEntries` and `persistentEntry` with `control` object, see example below
+
+***Important*** This plugin modifies existing IP table entries only. All IP-IDs must be pre-defined in SIMPL Windows with the `remap` option enabled. It cannot create new IP-IDs or change IP-ID assignments.
 
 ![Screenshot](/images/IP-ID-Remap.png)
 
 ## Features
-- **Runtime IP Table Editing:** Modify IP address, IP-ID, port, and program assignment for supported devices.
-- **SIMPL Windows Bridge Integration:** Exposes join map for control and feedback via Essentials Device Bridge (EISC).
-- **Persistent and Selectable Entries:** Supports both persistent (always active) and selectable (user-swappable) IP table entries.
-- **Startup Automation:** Optionally applies changes automatically at startup or via bridge commands.
-- **Diagnostics:** Feedback joins for table status and change operations.
+### **Editor Mode Features**
+- **Local IP Table Management:** Modify IP table entries on the host control processor
+- **Program Slot Control:** Trigger IP table checks and updates for specific program slots (1-10)
+- **Batch Operations:** Apply multiple IP table changes via `ipTableChanges` configuration
+- **Startup Automation:** Optionally applies changes automatically at startup
+
+### **Selector Mode Features**  
+- **Remote IP Table Management:** Control IP tables on remote devices via SSH/TCP communication
+- **Dynamic Selection:** Choose between predefined IP table configurations
+- **Persistent Entries:** Maintain always-active IP table entries alongside selectable ones
+- **Real-time Feedback:** Monitor remote device IP table status and changes
+
+### **Common Features**
+- **SIMPL Windows Bridge Integration:** Exposes join map for control and feedback via Essentials Device Bridge (EISC)
+- **Diagnostics:** Feedback joins for table status and change operations
+- **Runtime Operation:** No program reloads or SIMPL Windows recompilation required
 
 ## Use Cases
-This EPI is ideal for:
-- Commissioning and service scenarios where device network assignments change frequently.
-- Commissioning standard control code solutions with configurable design variations.
-- Environments with hot-swappable or backup devices (e.g., spare touchpanels).
-- Systems requiring remote or API-driven IP table management.
-- Reducing downtime by avoiding full program reloads for simple network changes.
+
+### **Editor Mode Use Cases**
+- Local IP table management on the host control processor
+- Commissioning scenarios where local device assignments need updates
+- Batch IP table changes during system startup or configuration
+- Direct control of the processor's own IP table entries
+
+### **Selector Mode Use Cases**  
+- One control processor managing remote touchpanel or processor IP tables
+- Hot-swappable device scenarios (e.g., backup touchpanels with different IP assignments)
+- Centralized IP table management across multiple devices
+- Remote commissioning and service operations
+- Systems requiring API-driven or user-selectable IP configurations
 
 ## SIMPL EISC Bridge Map
-Below is a sample join map for the SIMPL EISC Bridge, showing the digital and analog joins exposed by the plugin. Adjust `joinStart` as needed in your Essentials Device Bridge configuration.
+The bridge join map **varies depending on the operational mode** (Editor vs Selector). The plugin automatically selects the appropriate join map based on the presence of the `control` object in configuration.
+
+### **Editor Mode Bridge Map** (No Communication - `control` object not present)
+Uses `IpTableEditorBridgeJoinMap` for program slot control:
 
 #### Digitals
 | dig-o (Input/Triggers)     | I/O   | dig-i (Feedback)     |
 |----------------------------|-------|----------------------|
-| CheckTable                 | 1-10  | UpdateNeededFb       |
-|                            | 11    |                      |
-|                            | 12    |                      |
-|                            | 13    |                      |
-|                            | 14    |                      |
+| CheckTable Program Slot 1 | 1     | UpdateNeeded Slot 1  |
+| CheckTable Program Slot 2 | 2     | UpdateNeeded Slot 2  |
+| CheckTable Program Slot 3 | 3     | UpdateNeeded Slot 3  |
+| CheckTable Program Slot 4 | 4     | UpdateNeeded Slot 4  |
+| CheckTable Program Slot 5 | 5     | UpdateNeeded Slot 5  |
+| CheckTable Program Slot 6 | 6     | UpdateNeeded Slot 6  |
+| CheckTable Program Slot 7 | 7     | UpdateNeeded Slot 7  |
+| CheckTable Program Slot 8 | 8     | UpdateNeeded Slot 8  |
+| CheckTable Program Slot 9 | 9     | UpdateNeeded Slot 9  |
+| CheckTable Program Slot 10| 10    | UpdateNeeded Slot 10 |
 
 #### Analogs
-| an_o (Input/Triggers) | I/O  | an_i (Feedback)            |
-|-----------------------|------|----------------------------|
-| Select Item           | 1    | Item Selected              |
-|                       | 2    |                            |
-|                       | 3    |                            |
-|                       | 4    |                            |
-|                       | 5    |                            |
+| an_o (Input/Triggers) | I/O | an_i (Feedback)  |
+|-----------------------|-----|------------------|
+| _Not Used_            | -   | _Not Used_       |
 
 #### Serials
 | serial-o (Input/Triggers) | I/O | serial-i (Feedback)  |
 |---------------------------|-----|----------------------|
-|                           | 1   |                      |
-|                           | 2   |                      |
-|                           | 3   |                      |
-|                           | 4   |                      |
-|                           | 5   |                      |
+| _Not Used_                | -   | _Not Used_           |
+
+### **Selector Mode Bridge Map** (With Communication - `control` object present)
+Uses `IpTableSelectorBridgeJoinMap` for entry selection:
+
+#### Digitals
+| dig-o (Input/Triggers)    | I/O       | dig-i (Feedback)         |
+|---------------------------|-----------|--------------------------|
+| Select Entry 1            | 1         | Entry 1 Selected         |
+| Select Entry 2            | 2         | Entry 2 Selected         |
+| Select Entry 3            | 3         | Entry 3 Selected         |
+| Select Entry N            | N         | Entry N Selected         |
+| _(Span = # of entries)_   | _dynamic_ | _(Span = # of entries)_  |
+
+#### Analogs
+| an_o (Input/Triggers) | I/O | an_i (Feedback)      |
+|-----------------------|-----|----------------------|
+| Select Entry by Index | 1   | Selected Entry Index |
+
+#### Serials
+| serial-o (Input/Triggers) | I/O | serial-i (Feedback)  |
+|---------------------------|-----|----------------------|
+| _Not Used_                | -   | _Not Used_           |
 
 ## License
 
@@ -62,51 +112,99 @@ Provided under MIT license
 
 This repo contains a plugin for use with [PepperDash Essentials](https://github.com/PepperDash/Essentials). 
 
-## IP Table Editor Plugin Configuration
+## Configuration Examples
+
+### **Editor Mode Configuration** (Local IP Table Management)
+Used when managing IP table entries on the **local control processor**. No `control` object is required.
+
 ```json
 {
-    "key": "iptable-editor1-plugin",
+    "key": "iptable-editor-local",
     "uid": 1,
-    "name": "IP Table Editor",
+    "name": "IP Table Editor - Local Mode",
     "type": "iptableeditor",
     "group": "utilities",
     "properties": {
         "runAtStartup": false,
         "ipTableChanges": [
             {
-                "name": "TP01 - Remappable",
-                "ipId": "11",
-                "ipAddress": "127.0.0.1",
-                "devId": "11",
-                "programNumber": 10
+                "name": "TP01 - Main",
+                "ipId": "03",
+                "ipAddress": "192.168.1.100",
+                "devId": "03",
+                "programNumber": 1
             },
             {
-                "name": "TP01 Xpanel - Remappable",
-                "ipId": "21",
-                "ipAddress": "127.0.0.1",
-                "devId": "21",
-                "programNumber": 10
+                "name": "TP02 - Conference Room",
+                "ipId": "04",
+                "ipAddress": "192.168.1.101",
+                "devId": "04", 
+                "programNumber": 1
             },
             {
-                "name": "TCP Client 1",
-                "ipId": "81",
-                "ipAddress": "192.168.1.151",
+                "name": "TCP Client - AV Switcher",
+                "ipId": "10",
+                "ipAddress": "192.168.1.200",
                 "ipPort": 23,
-                "programNumber": 10
-            },
-            {
-                "name": "UDP Client 1",
-                "ipId": "91",
-                "ipAddress": "192.168.1.152",  
-                "ipPort": 5000,                          
-                "programNumber": 10
+                "programNumber": 1
             }
         ]
     }
 }
 ```
-## Essentials Device Bridge
-Note when "RunAtStartup": true bridge is not required. 
+
+### **Selector Mode Configuration** (Remote IP Table Management)
+Used when managing IP table entries on a **remote device** via communication. Requires `control` object and uses `selectableEntries`.
+
+```json
+{
+    "key": "iptable-editor-remote",
+    "uid": 2,
+    "name": "IP Table Editor - Remote Mode", 
+    "type": "iptableeditor",
+    "group": "utilities",
+    "properties": {
+        "control": {
+            "method": "ssh",
+            "tcpSshProperties": {
+                "address": "192.168.1.50",
+                "port": 22,
+                "username": "crestron",
+                "password": "password"
+            }
+        },
+        "persistentEntry": {
+            "name": "Always Active Device",
+            "ipId": "01",
+            "ipAddress": "192.168.1.10",
+            "roomId": "MainRoom"
+        },
+        "selectableEntries": {
+            "1": {
+                "name": "Primary Touchpanel",
+                "ipId": "03",
+                "ipAddress": "192.168.1.100",
+                "roomId": "MainRoom"
+            },
+            "2": {
+                "name": "Backup Touchpanel", 
+                "ipId": "03",
+                "ipAddress": "192.168.1.101",
+                "roomId": "MainRoom"
+            },
+            "3": {
+                "name": "Mobile Device Config",
+                "ipId": "03",
+                "ipAddress": "192.168.1.102",
+                "roomId": "MainRoom"
+            }
+        }
+    }
+}
+```
+## Essentials Device Bridge Configuration
+The bridge configuration is the same for both modes. Note: when `runAtStartup: true` is set, the bridge is not required for Editor mode functionality.
+
 ```json
 {
     "key": "essentials-device-bridge1",
@@ -117,7 +215,7 @@ Note when "RunAtStartup": true bridge is not required.
     "properties": {
         "control": {
             "tcpSshProperties": {
-                "address": "127.0.0.2",
+                "address": "127.0.0.1",
                 "port": 0
             },
             "ipid": "A0",
@@ -125,13 +223,24 @@ Note when "RunAtStartup": true bridge is not required.
         },
         "devices": [
             {
-                "deviceKey": "iptable-editor1-plugin",
+                "deviceKey": "iptable-editor-local",
                 "joinStart": 1
             }
         ]
     }
 }
 ```
+
+### Key Configuration Differences
+
+| Aspect | Editor Mode | Selector Mode |
+|--------|-------------|---------------|
+| **Communication** | No `control` object | Requires `control` object |
+| **IP Entries** | Uses `ipTableChanges` array | Uses `selectableEntries` dictionary |
+| **Target Device** | Local processor | Remote device via SSH/TCP |
+| **Bridge Map** | `IpTableEditorBridgeJoinMap` | `IpTableSelectorBridgeJoinMap` |
+| **Join Functionality** | Program slot triggers (1-10) | Entry selection (dynamic span) |
+| **Persistent Entries** | Not supported | Optional via `persistentEntry` |
 
 ## Public API Reference
 

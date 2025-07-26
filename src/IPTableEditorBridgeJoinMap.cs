@@ -5,7 +5,7 @@ namespace IPTableEditorPlugin
     public class IpTableEditorBridgeJoinMap : JoinMapBaseAdvanced
     {
         /// <summary>
-        /// Analog join to report LED product monitor temperature feedback
+        /// Select to check the table and feedback showing if the table needs to be checked 
         /// </summary>
         [JoinName("CheckTable")]
         public JoinDataComplete CheckTable = new JoinDataComplete(
@@ -34,7 +34,7 @@ namespace IPTableEditorPlugin
     public class IpTableSelectorBridgeJoinMap : JoinMapBaseAdvanced
     {
         /// <summary>
-        /// Analog join to report LED product monitor temperature feedback
+        /// Select and Feedback for selecting each mutable IPTable Entry (Digital join)
         /// </summary>
         [JoinName("SelectItemBool")]
         public JoinDataComplete SelectItemBool = new JoinDataComplete(
@@ -88,5 +88,4 @@ namespace IPTableEditorPlugin
                 });
         }
     }
-
 }
