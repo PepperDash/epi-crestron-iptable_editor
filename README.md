@@ -2,7 +2,7 @@
 
 # PepperDash Essentials TCP/IP Table Editor
 
-This repo contains a plugin for use with [PepperDash Essentials](https://github.com/PepperDash/Essentials). 
+This repo contains a plugin for use with [PepperDash Essentials](https://github.com/PepperDash/Essentials).
 
 ## License
 
