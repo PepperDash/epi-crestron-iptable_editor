@@ -261,12 +261,21 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				return;
 			}
 			Debug.Console(0, this, "Clear and add {0}", index);
-			ClearTable(index);
-			AddMultipleEntries(new List<IpTableObjectBase>()
+			ClearTable();
+			
+			// Build list of entries to add (only include non-null entries)
+			var entriesToAdd = new List<IpTableObjectBase>();
+			
+			// Add persistent entry if it exists
+			if (_persistentIpTableObject != null)
 			{
-				_persistentIpTableObject,
-				_mutableIpTableObjects[index]
-			}, false);
+				entriesToAdd.Add(_persistentIpTableObject);
+			}
+			
+			// Add selected entry
+			entriesToAdd.Add(_mutableIpTableObjects[index]);
+			
+			AddMultipleEntries(entriesToAdd, false);
 		}
 
 		/// <inheritdoc/>
@@ -305,7 +314,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 
 		private void AddMultipleEntries(IEnumerable<IpTableObjectBase> entries, bool suppressPoll)
 		{
-			foreach (var cmd in entries.Select(entry => String.Format("addm {0} {1} {2}", entry.IpId, entry.IpAddress, entry.RoomId)))
+			foreach (var cmd in entries.Where(entry => entry != null).Select(entry => String.Format("addm {0} {1} {2}", entry.IpId, entry.IpAddress, entry.RoomId)))
 			{
 				EnqueueCmd(cmd, Queue);
 			}
@@ -318,10 +327,10 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			AddEntry(_persistentIpTableObject, false);
 		}
 
-		private void ClearTable(int programSlot)
+		private void ClearTable()
 		{
-			var cmd = string.Format("ipt -p:{0} -c", programSlot);
-			Debug.Console(0, this, "Clearing IP table for program slot {0}", programSlot);
+			var cmd = string.Format("ipt -c");
+			Debug.Console(0, this, "Clearing IP table");
 			EnqueueCmd(cmd, Queue);
 		}
 

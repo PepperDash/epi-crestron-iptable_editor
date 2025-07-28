@@ -30,38 +30,24 @@
             {
                 "key": "iptable-editor-remote",
                 "uid": 2,
-                "name": "IP Table Editor - Remote Mode", 
+                "name": "IP Table Editor - Selector Mode - Persistent Entry", 
                 "type": "iptableeditor",
                 "group": "utilities",
                 "properties": {
                     "control": {
                         "method": "ssh",
                         "tcpSshProperties": {
-                            "address": "192.168.1.248",
+                            "address": "10.11.50.225",
                             "port": 22,
                             "username": "crestron",
                             "password": "password"
                         }
                     },
-                    "selectableEntries": {
-                        "1": {
-                            "name": "Primary Touchpanel",
-                            "ipId": "13",
-                            "ipAddress": "127.0.0.1",
-                            "roomId": "MainRoom"
-                        },
-                        "2": {
-                            "name": "Primary X-Panel", 
-                            "ipId": "24",
-                            "ipAddress": "127.0.0.1",
-                            "roomId": "MainRoom"
-                        },
-                        "3": {
-                            "name": "Mobile Device Config",
-                            "ipId": "80",
-                            "ipAddress": "192.168.1.102",
-                            "roomId": "MainRoom"
-                        }
+                    "persistentEntry": {
+                        "name": "Always Active Device",
+                        "ipId": "31",
+                        "ipAddress": "192.168.1.10",
+                        "roomId": "MainRoom"
                     }
                 }
             },

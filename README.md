@@ -12,34 +12,34 @@ Provided under MIT license
 
 The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enables dynamic runtime editing and management of Crestron IP Table entries for devices such as touchpanels, XPanels, and network clients. This plugin operates in **two distinct modes** based on the presence of communication configuration:
 
-### **Editor Mode** (configuration does not include `control` object)
+### **Editor Mode** (configuration `control` object not included)
 - **Purpose**: Manages IP table entries on the **local control processor** where the plugin is running
 - **Use Case**: Direct control of the host processor's IP table for local device management
 - **Configuration**: Uses `ipTableChanges` array without `control` object, see example below
 
-### **Selector Mode** (configuration includes `control` object) - **🚧 WORK IN PROGRESS 🚧**
-- **Purpose**: Manages IP table entries on a **remote device** via SSH/TCP communication
-- **Use Case**: One control processor remotely managing another processor's or touchpanel's IP table
-- **Configuration**: Uses `selectableEntries` and `persistentEntry` with `control` object, see example below
-- **Status**: ⚠️ This mode is currently under development and may not function as expected
-
-***Important*** This plugin modifies existing IP table entries only. All IP-IDs must be pre-defined in SIMPL Windows with the `remap` option enabled. It cannot create new IP-IDs or change IP-ID assignments.
+***Important*** Plugin `Editor Mode` modifies existing IP table entries only. All IP-IDs must be pre-defined in SIMPL Windows with the `remap` option enabled. Plugin cannot create new IP-IDs or change IP-ID assignments.
 
 ![Screenshot](/images/IP-ID-Remap.png)
 
+### **Selector Mode** (configuration `control` object included)
+- **Purpose**: Manages IP table entries on a **remote device** via SSH/TCP communication
+- **Use Case**: Host control processor remotely managing `master` IP table entry of touchpanel, DM-NVX, or similar
+- **Configuration**: Uses **either** `persistentEntry` **or** `selectableEntries` (typically not both due to single master entry limitation)
+
 ## Features
+
 ### **Editor Mode Features**
 - **Local IP Table Management:** Modify IP table entries on the host control processor
 - **Program Slot Control:** Trigger IP table checks and updates for specific program slots (1-10)
 - **Batch Operations:** Apply multiple IP table changes via `ipTableChanges` configuration
 - **Startup Automation:** Optionally applies changes automatically at startup
 
-### **Selector Mode Features** - **🚧 WIP 🚧**
+### **Selector Mode Features**
 - **Remote IP Table Management:** Control IP tables on remote devices via SSH/TCP communication
-- **Dynamic Selection:** Choose between predefined IP table configurations
-- **Persistent Entries:** Maintain always-active IP table entries alongside selectable ones
+- **Dynamic Selection:** Choose between predefined IP table configurations (when using `selectableEntries`)
+- **Persistent Entries:** Maintain single always-selected IP table entry (when using `persistentEntry`) triggered at construction
 - **Real-time Feedback:** Monitor remote device IP table status and changes
-- **⚠️ Note:** This mode is currently under active development
+- **⚠️ Configuration:** Use **either** `persistentEntry` **or** `selectableEntries`, typically not both
 
 ### **Common Features**
 - **SIMPL Windows Bridge Integration:** Exposes join map for control and feedback via Essentials Device Bridge (EISC)
@@ -55,12 +55,11 @@ The **IP Table Editor Plugin** is a PepperDash Essentials Plugin (EPI) that enab
 - Direct control of the processor's own IP table entries
 
 ### **Selector Mode**  
-- One control processor managing remote touchpanel or processor IP tables
+- One control processor managing remote IP table entry of remote device (touchpanel, DM-NVX, or similar)
 - Hot-swappable device scenarios (e.g., backup touchpanels with different IP assignments)
 - Centralized IP table management across multiple devices
 - Remote commissioning and service operations
 - Systems requiring API-driven or user-selectable IP configurations
-- **⚠️ Note:** Remote mode functionality is currently under development
 
 ## SIMPL EISC Bridge Map
 The bridge join map **varies depending on the operational mode** (Editor vs Selector). The plugin automatically selects the appropriate join map based on the presence of the `control` object in configuration.
@@ -92,7 +91,7 @@ Uses `IpTableEditorBridgeJoinMap` for program slot control:
 |---------------------------|-----|----------------------|
 | _Not Used_                | -   | _Not Used_           |
 
-### **Selector Mode Bridge Map** (With Communication - `control` object present)
+### **Selector Mode (Selectable Entries) Bridge Map** (With Communication - `control` object present)
 Uses `IpTableSelectorBridgeJoinMap` for entry selection:
 
 #### Digitals
@@ -113,6 +112,9 @@ Uses `IpTableSelectorBridgeJoinMap` for entry selection:
 | serial-o (Input/Triggers) | I/O | serial-i (Feedback)  |
 |---------------------------|-----|----------------------|
 | _Not Used_                | -   | _Not Used_           |
+
+### **Selector Mode (Persistent Entry) Bridge Map** (With Communication - `control` object present)
+No bridge required. IP Table entry sent during plugin construction. IP table entry sent only once. No 
 
 ## Configuration Examples
 
@@ -170,16 +172,16 @@ The `runAtStartup` property controls automatic IP table updates in **Editor Mode
 - `true`: Fixed configurations that should be set once at system startup
 - `false`: Dynamic configurations requiring manual/programmatic control
 
-### **Selector Mode Configuration** (Remote IP Table Management) - **🚧 WIP 🚧**
-Used when managing IP table entries on a **remote device** via communication. Requires `control` object and uses `selectableEntries`.
+### **Selector Mode Configuration** (Remote IP Table Management)
+Used when managing IP table entries on a **remote device** via communication. Requires `control` object and uses **either** `persistentEntry` **or** `selectableEntries`.
 
-**⚠️ Important:** This configuration mode is currently under development and may not function as expected.
+**⚠️ Configuration Rule:** Use **either** `persistentEntry` **or** `selectableEntries`, but **not both** due to single master IP table entry limitation on Crestron devices.
 
 ```json
 {
     "key": "iptable-editor-remote",
     "uid": 2,
-    "name": "IP Table Editor - Remote Mode", 
+    "name": "IP Table Editor - Selector Mode", 
     "type": "iptableeditor",
     "group": "utilities",
     "properties": {
@@ -193,7 +195,7 @@ Used when managing IP table entries on a **remote device** via communication. Re
             }
         },
         "persistentEntry": {
-            "name": "Always Active Device",
+            "name": "Always Selected Entry",
             "ipId": "01",
             "ipAddress": "192.168.1.10",
             "roomId": "MainRoom"
@@ -221,6 +223,7 @@ Used when managing IP table entries on a **remote device** via communication. Re
     }
 }
 ```
+
 ## Essentials Device Bridge Configuration
 The bridge configuration is the same for both modes. 
 
@@ -263,8 +266,72 @@ The bridge configuration is the same for both modes.
 | **Bridge Map** | `IpTableEditorBridgeJoinMap` | `IpTableSelectorBridgeJoinMap` |
 | **Join Functionality** | Program slot triggers (1-10) | Entry selection (dynamic span) |
 | **Persistent Entries** | Not supported | Optional via `persistentEntry` |
+| **Selectable Entries** | Not supported | Supported via `selectableEntries` dictionary |
 | **`runAtStartup`** | Applies changes once at EPI startup | No effect (selection required) |
 | **Ongoing Monitoring** | Manual triggers only (no automatic monitoring) | Manual selection required |
+
+## Operational Workflows
+
+### **Editor Mode Workflow** (Local IP Table Management)
+
+#### **Construction to Runtime Flow**
+1. **Plugin Construction** (`IpTableEditor` without communication)
+   - Loads `ipTableChanges` configuration array
+   - Creates `ProgramSlots` dictionary for slots 1-10
+   - Sets up bridge join map (`IpTableEditorBridgeJoinMap`)
+   - If `runAtStartup: true` → immediately applies all IP table changes
+
+2. **Runtime Operation** 
+   - **Manual Trigger**: User activates bridge join 1-10 → `CheckTables(slot)` → `SendCommandList()`
+   - **Command Execution**: `addp {ipId} {ipAddress} -P:{programNumber}` sent to local processor
+   - **Feedback**: Updates `UpdateNeeded` feedback joins based on comparison results
+
+#### **Command Details**
+- **`addp` = "Add Peer"**: Adds peer IP table entries to local processor
+- **Purpose**: Multiple peer entries allowed (processor ↔ touchpanel, third-party integrations)
+- **Execution**: Via `CrestronConsole.SendControlSystemCommand()` (local)
+
+### **Selector Mode Workflow** (Remote IP Table Management)
+
+#### **Construction to Runtime Flow**
+1. **Plugin Construction** (`IpTableEditor` with communication)
+   - Loads `selectableEntries` dictionary and optional `persistentEntry`
+   - Establishes SSH/TCP communication to remote device
+   - Sets up bridge join map (`IpTableSelectorBridgeJoinMap`) with dynamic span
+   - If `persistentEntry` exists → immediately sends `addm` command to remote device
+   - Polls remote IP table state for initial feedback
+
+2. **Runtime Operation**
+   - **Manual Trigger**: User activates selection join → `SelectEntry(index)` → `ClearAndAdd(index)`
+   - **Command Execution Sequence**:
+     1. `ipt -p:{index} -c` (clear remote program slot)
+     2. `addm {persistentIpId} {persistentIP} {persistentRoom}` (if configured)
+     3. `addm {selectedIpId} {selectedIP} {selectedRoom}` (selected entry)
+     4. `ipt -t` (poll for feedback)
+   - **Feedback**: Updates selection feedback joins based on active IP table state
+
+#### **Command Details**
+- **`addm` = "Add Master"**: Adds master IP table entries to remote device
+- **Purpose**: Single master entry per device (touchpanel or DM-NVX)
+- **Execution**: Via SSH/TCP communication to remote device
+- **⚠️ Critical Limitation**: Some Crestron devices allow for only a **single master entry**
+
+#### **Example Execution Sequence**
+User selects Entry 2 on remote touchpanel:
+```
+> ipt -p:02 -c                                    // Clear program slot 2
+> addm 01 192.168.1.10 MainRoom                   // Add persistent entry (if configured)
+> addm 03 192.168.1.101 MainRoom                  // Add selected entry #2  
+> ipt -t                                          // Poll current table state
+< IP Table: 01-192.168.1.10, 03-192.168.1.101    // Response for feedback
+```
+
+#### **Key Design Considerations**
+- **Persistent vs Selectable**: Due to single master limitation, typically use **one or the other**:
+  - **Persistent Entry**: For always-selected master connections (e.g., touch panel or DM-NVX)
+  - **Selectable Entries**: For dynamic master selection (e.g., hot-swappable configurations)
+- **Program Slot Targeting**: Uses selection index to determine which remote program slot to clear
+- **Connection Management**: Handles SSH/TCP connectivity and command queuing automatically
 
 ## Public API Reference
 
