@@ -114,7 +114,7 @@ Uses `IpTableSelectorBridgeJoinMap` for entry selection:
 | _Not Used_                | -   | _Not Used_           |
 
 ### **Selector Mode (Persistent Entry) Bridge Map** (With Communication - `control` object present)
-No bridge required. IP Table entry sent during plugin construction. IP table entry sent only once. No 
+No bridge required. IP table entry sent only once post plugin construction. 
 
 ## Configuration Examples
 
