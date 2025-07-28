@@ -34,7 +34,7 @@
         "main",
         {
             "name": "maintenance/essentialsVersion1.x",
-            "prerelease": "maintenance-essentialsVersion1.x",
+            "range": "1.x",
             "channel": "maintenance-essentialsVersion1.x"
         }
     ]
