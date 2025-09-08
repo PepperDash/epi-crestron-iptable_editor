@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<ProjectType>ProgramLibrary</ProjectType>
 	</PropertyGroup>
@@ -8,7 +8,7 @@
 		<Deterministic>false</Deterministic>
 		<AssemblyTitle>PepperDash.Essentials.Plugin.CrestronIptable_Editor</AssemblyTitle>
 		<Company>PepperDash Technology</Company>
-		<Description>This software is a template for a PepperDash Essentials Plugin.</Description>
+		<Description>This software is a plugin for PepperDash Essentials.</Description>
 		<Copyright>Copyright 2025</Copyright>
 		<Version>1.0.0-local</Version>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
