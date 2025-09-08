@@ -4,18 +4,18 @@
     <InformationalVersion>$(Version)</InformationalVersion>
     <Authors>PepperDash Technology</Authors>
     <Company>PepperDash Technology</Company>
-    <Product>PepperDash Essentials Plugin</Product>
+    <Product>PepperDash Essentials Crestron IpTable Editor</Product>
     <Copyright>Copyright © 2025</Copyright>
-    <RepositoryUrl>https://github.com/PepperDash/epi-crestron-iptable_editor</RepositoryUrl>
+    <RepositoryUrl>https://github.com/PepperDash/epi-crestron-iptable_editor.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>Crestron; 3series</PackageTags>
+    <PackageTags>Crestron; 4series</PackageTags>
     <PackageOutputPath>..\output</PackageOutputPath>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageLicenseFile>License.txt</PackageLicenseFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\License.txt" Pack="true" PackagePath=""/>
+    <None Include="..\LICENSE.md" Pack="true" PackagePath=""/>
     <None Include="..\README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>

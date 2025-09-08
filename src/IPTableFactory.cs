@@ -19,7 +19,7 @@ namespace IPTableEditorPlugin
 		/// <inheritdoc/>
 		public IpTableEditorFactory()
 		{
-			MinimumEssentialsFrameworkVersion = "1.16.0";
+			MinimumEssentialsFrameworkVersion = "2.12.1";
 			TypeNames = new List<string> { "IPTableEditor" };
 		}
 
@@ -31,13 +31,14 @@ namespace IPTableEditorPlugin
 		/// <inheritdoc/>
 		public override EssentialsDevice BuildDevice(DeviceConfig dc)
 		{
-			Debug.Console(1, "[{0}] Factory Attempting to create new device from type: {1}", dc.Key, dc.Type);
+			//Debug.LogDebug( "[{0}] Factory Attempting to create new device from type: {1}", dc.Key, dc.Type);
+			Debug.LogDebug("[{0}] Factory Attempting to create new device from type: {1}", dc.Key, dc.Type);
 
-			// get the plugin device properties configuration object & check for null 
-			var propertiesConfig = dc.Properties.ToObject<IpTableEditorConfigObject>();
+            // get the plugin device properties configuration object & check for null 
+            var propertiesConfig = dc.Properties.ToObject<IpTableEditorConfigObject>();
 			if (propertiesConfig == null)
 			{
-				Debug.Console(0, "[{0}] Factory: failed to read properties config for {1}", dc.Key, dc.Name);
+				Debug.LogInformation("[{0}] Factory: failed to read properties config for {1}", dc.Key, dc.Name);
 				return null;
 			}
 
@@ -49,16 +50,16 @@ namespace IPTableEditorPlugin
 				try
 				{
 					comm = CommFactory.CreateCommForDevice(dc);
-					Debug.Console(1, "[{0}] Factory: Communication object created successfully", dc.Key);
+					Debug.LogDebug( "[{0}] Factory: Communication object created successfully", dc.Key);
 				}
 				catch (System.Exception ex)
 				{
-					Debug.Console(0, "[{0}] Factory: Failed to create communication object. Error: {1}", dc.Key, ex.Message);
+					Debug.LogInformation("[{0}] Factory: Failed to create communication object. Error: {1}", dc.Key, ex.Message);
 				}
 			}
 			else
 			{
-				Debug.Console(1, "[{0}] Factory: No control properties found - using logic-only mode", dc.Key);
+				Debug.LogDebug( "[{0}] Factory: No control properties found - using logic-only mode", dc.Key);
 			}
 
 			return comm == null ? new IpTableEditor(dc.Key, dc.Name, dc) : new IpTableEditor(dc.Key, dc.Name, dc, comm);			
