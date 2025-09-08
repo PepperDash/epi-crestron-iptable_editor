@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <!-- Update ID with a plugin ID representative of the plugin being built-->
-    <id>PepperDash.Essentials.Plugin.CrestronIptable_Editor</id>
+    <id>PepperDash.Essentials.Plugins.crestron.iptable_editor</id>
     <version>1.0.0</version>
     <readme>docs\README.md</readme>
     <!-- Update Title with the plugin name that users will see-->
