@@ -71,6 +71,7 @@ namespace PepperDash.Essentials.Plugins.Crestron.IpTable_Editor
 			var config = JsonConvert.DeserializeObject<IpTableEditorConfigObject>(dc.Properties.ToString());
 
 			_config = config ?? new IpTableEditorConfigObject();
+			_key = key;
 			ProgramSlots = new Dictionary<int, ProgramSlot>();
 
 			SortMods();
