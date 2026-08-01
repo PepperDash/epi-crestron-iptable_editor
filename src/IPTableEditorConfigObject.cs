@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using PepperDash.Essentials.Core;
 
 
-namespace IPTableEditorPlugin 
+namespace PepperDash.Essentials.Plugins.Crestron.IpTable_Editor 
 {
     /// <summary>
     /// Plugin device configuration object

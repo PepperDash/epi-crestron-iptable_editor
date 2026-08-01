@@ -18,50 +18,51 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 
-namespace IPTableEditorPlugin 
+namespace PepperDash.Essentials.Plugins.Crestron.IpTable_Editor
 {
-/// <summary>
-/// Main class for the IP Table Editor plugin, providing runtime IP table management.
-/// </summary>
-public class IpTableEditor : EssentialsBridgeableDevice
+	/// <summary>
+	/// Main class for the IP Table Editor plugin, providing runtime IP table management.
+	/// </summary>
+	public class IpTableEditor : EssentialsBridgeableDevice
 	{
 
 		string _myResponse;
 		readonly IpTableEditorConfigObject _config;
+		readonly string _key;
 		private readonly Dictionary<int, IpTableObjectBase> _mutableIpTableObjects;
-	/// <inheritdoc/>
-	public Dictionary<int, bool> IpTableObjectActive { get; set; }
+		/// <inheritdoc/>
+		public Dictionary<int, bool> IpTableObjectActive { get; set; }
 		private readonly IpTableObjectBase _persistentIpTableObject;
 		/// <inheritdoc/>
 		public IntFeedback IntSelectedFeedback { get; set; }
 
 		private int IntFeedbackBacker { get; set; }
 
-	/// <inheritdoc/>
-	public IBasicCommunication Comm;
-	/// <inheritdoc/>
-	public ISocketStatus SocketStatus;
-	/// <inheritdoc/>
-	public CommunicationGather PortGather;
+		/// <inheritdoc/>
+		public IBasicCommunication Comm;
+		/// <inheritdoc/>
+		public ISocketStatus SocketStatus;
+		/// <inheritdoc/>
+		public CommunicationGather PortGather;
 		//Dictionary<int, List<IPTableConfigObject>> SortedMods = new Dictionary<int, List<IPTableConfigObject>>();
 		//public Dictionary<int, bool> HasMods;
 		//public Dictionary<int, BoolFeedback> HasModsFeedback;
 		//public Dictionary<int, bool> NeedsCheckTables;
-	/// <inheritdoc/>
-	public Dictionary<int, ProgramSlot> ProgramSlots { get; private set; }
+		/// <inheritdoc/>
+		public Dictionary<int, ProgramSlot> ProgramSlots { get; private set; }
 
 		private CrestronQueue Queue { get; set; }
 
 		//private CTimer _connectionTimer;
 
-		private const string Delimiter =  "\x0D\x0A";
+		private const string Delimiter = "\x0D\x0A";
 
 		private int _selecting = 0;
 
 		/// <inheritdoc/>
 		public FeedbackCollection<Feedback> Feedbacks { get; set; }
 
-		private List<IpTableObjectBase> CurrentEntries { get; set; } 
+		private List<IpTableObjectBase> CurrentEntries { get; set; }
 
 		/// <inheritdoc/>
 		public IpTableEditor(string key, string name, DeviceConfig dc)
@@ -70,8 +71,9 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			var config = JsonConvert.DeserializeObject<IpTableEditorConfigObject>(dc.Properties.ToString());
 
 			_config = config ?? new IpTableEditorConfigObject();
+			_key = key;
 			ProgramSlots = new Dictionary<int, ProgramSlot>();
-	
+
 			SortMods();
 
 			SystemMonitor.ProgramChange += SystemMonitor_ProgramChange;
@@ -88,10 +90,11 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			: base(key, name)
 		{
 
-			Debug.Console(0, this, "Constructor with Comm!");
+			Debug.LogVerbose(this, "Constructor with Comm!");
 			var config = JsonConvert.DeserializeObject<IpTableEditorConfigObject>(dc.Properties.ToString());
 
 			_config = config ?? new IpTableEditorConfigObject();
+			_key = key;
 
 			Queue = new CrestronQueue(100);
 
@@ -102,7 +105,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				SocketStatus.ConnectionChange += SocketStatus_ConnectionChange;
 			}
 
-			IntSelectedFeedback = new IntFeedback(() => IntFeedbackBacker);
+			IntSelectedFeedback = new IntFeedback(key + "IntSelectedFB", () => IntFeedbackBacker);
 
 			_mutableIpTableObjects = _config.SelectableEntries ?? new Dictionary<int, IpTableObjectBase>();
 			CurrentEntries = new List<IpTableObjectBase>();
@@ -128,17 +131,17 @@ public class IpTableEditor : EssentialsBridgeableDevice
 
 		void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs e)
 		{
-			Debug.Console(0, this, "Data Received on port : {0}", e.Text);
+			Debug.LogVerbose(this, "Data Received on port : {0}", e.Text);
 
 			var data = e.Text.Trim();
 			if (data.ToLower().Contains("ip table")) ProcessIpTable(data);
-			if(!Queue.IsEmpty)
+			if (!Queue.IsEmpty)
 				DequeueCmd(Queue);
 		}
 
 		void ProcessIpTable(string data)
 		{
-			Debug.Console(0, this, "Process IP Table");
+			Debug.LogVerbose(this, "Process IP Table");
 			var lines = Regex.Split(data, (Delimiter));
 			if (lines.Length <= 0) return;
 			var currentTable = new List<IpTableObjectBase>();
@@ -147,7 +150,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				if (!line.Contains("|")) continue;
 				if (!line.ToLower().Contains("cip_id"))
 				{
-					Debug.Console(0, this, "Parsing Line : {0}", line);
+					Debug.LogVerbose(this, "Parsing Line : {0}", line);
 					var chunks = line.Split('|');
 					currentTable.Add(new IpTableObjectBase
 					{
@@ -157,13 +160,13 @@ public class IpTableEditor : EssentialsBridgeableDevice
 					});
 				}
 			}
-			Debug.Console(0, this, "There are {0} Entries in the ip table", currentTable.Count);
+			Debug.LogVerbose(this, "There are {0} Entries in the ip table", currentTable.Count);
 			CurrentEntries = currentTable;
-			Debug.Console(0, this, "CurrentEntries");
+			Debug.LogVerbose(this, "CurrentEntries");
 
 			foreach (var item in CurrentEntries)
 			{
-				Debug.Console(0, this, "Ipid : {0} | IpAddress : {1} | RoomId : {2}", item.IpId, item.IpAddress, item.RoomId ?? "N/A");
+				Debug.LogVerbose(this, "Ipid : {0} | IpAddress : {1} | RoomId : {2}", item.IpId, item.IpAddress, item.RoomId ?? "N/A");
 			}
 			CompareEntries();
 
@@ -171,7 +174,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 
 		private void CompareEntries()
 		{
-			Debug.Console(0, this, "CompareEntries");
+			Debug.LogVerbose(this, "CompareEntries");
 
 			var tempDict = new Dictionary<int, bool>();
 
@@ -180,7 +183,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				var i = item;
 				var linkedItem = CurrentEntries.FirstOrDefault(o => o.IpId == i.Value.IpId);
 				var present = linkedItem != null;
-				Debug.Console(0, this,"Feedback Entry {0} is {1}", i.Key, present);
+				Debug.LogVerbose(this, "Feedback Entry {0} is {1}", i.Key, present);
 				tempDict.Add(i.Key, linkedItem != null);
 				if (present) IntFeedbackBacker = i.Key;
 			}
@@ -194,7 +197,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			{
 				var f = feedback;
 				f.FireUpdate();
-				Debug.Console(0, this, "Feedback {0} = {1}", f.Key, f.BoolValue);
+				Debug.LogVerbose(this, "Feedback {0} = {1}", f.Key, f.BoolValue);
 			}
 			IntSelectedFeedback.FireUpdate();
 
@@ -202,29 +205,29 @@ public class IpTableEditor : EssentialsBridgeableDevice
 
 		void SocketStatus_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
 		{
-			Debug.Console(0, this, "ConnectionChange = {0}", e.Client.IsConnected ? "Connected" : "Disconnected");
+			Debug.LogVerbose(this, "ConnectionChange = {0}", e.Client.IsConnected ? "Connected" : "Disconnected");
 
 			//_connectionTimer = null;
 			if (!e.Client.IsConnected) return;
 			//_connectionTimer = new CTimer(o => Comm.Disconnect(), 15000);
-			Debug.Console(0, this, "Selecting = {0}", _selecting);
+			Debug.LogVerbose(this, "Selecting = {0}", _selecting);
 			if (_selecting != 0)
 			{
 				ClearAndAdd(_selecting);
 			}
 			if (Queue.IsEmpty) return;
-			Debug.Console(0, this, "Queue is not empty - has {0} elements", Queue.Count);
+			Debug.LogVerbose(this, "Queue is not empty - has {0} elements", Queue.Count);
 			DequeueCmd(Queue);
 		}
 
-	/// <inheritdoc/>
-	public void SelectEntry(int index)
+		/// <inheritdoc/>
+		public void SelectEntry(int index)
 		{
-			Debug.Console(0, this, "Select Entry = {0}", index);
+			Debug.LogVerbose(this, "Select Entry = {0}", index);
 
 			if (Comm == null || SocketStatus == null)
 			{
-				Debug.Console(0, this, "Cannot select entry - no communication object available");
+				Debug.LogVerbose(this, "Cannot select entry - no communication object available");
 				return;
 			}
 
@@ -240,8 +243,8 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			}
 		}
 
-	/// <inheritdoc/>
-	public void SwapEntry(int index)
+		/// <inheritdoc/>
+		public void SwapEntry(int index)
 		{
 			var removalList = CurrentEntries.Where(entry => entry.IpId != _persistentIpTableObject.IpId && entry.IpId != _mutableIpTableObjects[index].IpId).ToList();
 
@@ -257,24 +260,24 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			_mutableIpTableObjects.TryGetValue(index, out newEntry);
 			if (newEntry == null)
 			{
-				Debug.Console(0, this, "Invalid Entry {0} Selected", index);
+				Debug.LogVerbose(this, "Invalid Entry {0} Selected", index);
 				return;
 			}
-			Debug.Console(0, this, "Clear and add {0}", index);
+			Debug.LogVerbose(this, "Clear and add {0}", index);
 			ClearTable();
-			
+
 			// Build list of entries to add (only include non-null entries)
 			var entriesToAdd = new List<IpTableObjectBase>();
-			
+
 			// Add persistent entry if it exists
 			if (_persistentIpTableObject != null)
 			{
 				entriesToAdd.Add(_persistentIpTableObject);
 			}
-			
+
 			// Add selected entry
 			entriesToAdd.Add(_mutableIpTableObjects[index]);
-			
+
 			AddMultipleEntries(entriesToAdd, false);
 		}
 
@@ -330,35 +333,35 @@ public class IpTableEditor : EssentialsBridgeableDevice
 		private void ClearTable()
 		{
 			var cmd = string.Format("ipt -c");
-			Debug.Console(0, this, "Clearing IP table");
+			Debug.LogVerbose(this, "Clearing IP table");
 			EnqueueCmd(cmd, Queue);
 		}
 
 		private void EnqueueCmd(string cmd, CrestronQueue queue)
 		{
-			Debug.Console(0, this, "Enqueued Cmd : {0}", cmd);
-			
+			Debug.LogVerbose(this, "Enqueued Cmd : {0}", cmd);
+
 			if (Comm == null || SocketStatus == null || queue == null)
 			{
-				Debug.Console(0, this, "Cannot enqueue command - communication objects not available");
+				Debug.LogVerbose(this, "Cannot enqueue command - communication objects not available");
 				return;
 			}
-			
+
 			queue.Enqueue(cmd);
 			if (!SocketStatus.IsConnected)
 			{
-				Debug.Console(0, this, "Command Enqueued - Connecting Socket!");
+				Debug.LogVerbose(this, "Command Enqueued - Connecting Socket!");
 				try
 				{
 					Comm.Connect();
 				}
 				catch (Exception ex)
 				{
-					Debug.Console(0, this, "Failed to connect: {0}", ex.Message);
+					Debug.LogVerbose(this, "Failed to connect: {0}", ex.Message);
 				}
 				return;
 			}
-			Debug.Console(0, this, "Command Enqueued and Socket Already Connected!");
+			Debug.LogVerbose(this, "Command Enqueued and Socket Already Connected!");
 			CheckQueue(queue);
 		}
 
@@ -372,24 +375,24 @@ public class IpTableEditor : EssentialsBridgeableDevice
 
 		private void DequeueCmd(CrestronQueue queue)
 		{
-			Debug.Console(0, this, "Dequeueing Command");
+			Debug.LogVerbose(this, "Dequeueing Command");
 			var cmd = queue.Dequeue() as string;
-			Debug.Console(0, this, "Command is : {0}", cmd);
+			Debug.LogVerbose(this, "Command is : {0}", cmd);
 			SendCmd(cmd);
 		}
 
-	/// <inheritdoc/>
-	public void SendCmd(string data)
+		/// <inheritdoc/>
+		public void SendCmd(string data)
 		{
 			if (Comm == null)
 			{
-				Debug.Console(0, this, "Cannot send command - no communication object available");
+				Debug.LogVerbose(this, "Cannot send command - no communication object available");
 				return;
 			}
 
 			if (SocketStatus != null && !SocketStatus.IsConnected)
 			{
-				Debug.Console(0, this, "Cannot send command - socket not connected");
+				Debug.LogVerbose(this, "Cannot send command - socket not connected");
 				return;
 			}
 
@@ -397,11 +400,11 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			{
 				var cmd = string.Format("{0}{1}", data, Delimiter);
 				Comm.SendText(cmd);
-				Debug.Console(1, this, "Command sent successfully: {0}", data);
+				Debug.LogDebug(this, "Command sent successfully: {0}", data);
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(0, this, "Failed to send command '{0}': {1}", data, ex.Message);
+				Debug.LogVerbose(this, "Failed to send command '{0}': {1}", data, ex.Message);
 				// If send fails, try to reconnect on next command
 				if (SocketStatus != null && SocketStatus.IsConnected)
 				{
@@ -411,7 +414,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 					}
 					catch (Exception disconnectEx)
 					{
-						Debug.Console(1, this, "Error during disconnect: {0}", disconnectEx.Message);
+						Debug.LogDebug(this, "Error during disconnect: {0}", disconnectEx.Message);
 					}
 				}
 			}
@@ -438,34 +441,36 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				var programSlot = new ProgramSlot();
 				ProgramSlots.Add(slot, programSlot);
 				programSlot.HasMods = false;
-				programSlot.HasModsFeedback =  new BoolFeedback(() => 
+
+
+				programSlot.HasModsFeedback = new BoolFeedback(_key + "-HasModsFB-" + slot, () =>
 					{
-						Debug.Console(2, this, "the value of i is: {0} in HasModsFeedbackFunc", slot);
+						Debug.LogVerbose(this, "the value of i is: {0} in HasModsFeedbackFunc", slot);
 						if (ProgramSlots.ContainsKey(slot))
 							return programSlot.HasMods;
 						else
 						{
-							Debug.Console(2, this, "Unable to find key '{0}' in HasMods", slot);
+							Debug.LogVerbose(this, "Unable to find key '{0}' in HasMods", slot);
 							return false;
 						}
 
 					});
 				var localMods = new List<IpTableChangesConfigObject>();
-				var selected = (_config.IpTableChanges != null) 
-					? _config.IpTableChanges.Where(item => item.ProgramNumber == slot).ToList() 
+				var selected = (_config.IpTableChanges != null)
+					? _config.IpTableChanges.Where(item => item.ProgramNumber == slot).ToList()
 					: new List<IpTableChangesConfigObject>();
 				if (selected != null && selected.Any())
-				{					
+				{
 					_config.IpTableChanges = _config.IpTableChanges.Except(selected).ToList();
 					localMods.AddRange(selected);
-					Debug.Console(2, this, "SortMods | Adding {0} mods to slot {1}", localMods.Count, slot);
+					Debug.LogVerbose(this, "SortMods | Adding {0} mods to slot {1}", localMods.Count, slot);
 					programSlot.SortedMods = localMods;
 					programSlot.HasMods = programSlot.SortedMods.Count > 0 ? true : false;
 					programSlot.HasModsFeedback.FireUpdate();
 				}
 				else
 				{
-					Debug.Console(2, this, "SortMods | Slot {0} had no mods", slot);
+					Debug.LogVerbose(this, "SortMods | Slot {0} had no mods", slot);
 				}
 			}
 		}
@@ -474,8 +479,8 @@ public class IpTableEditor : EssentialsBridgeableDevice
 		/// Check tables
 		/// </summary>
 		/// <param name="slot">Integer value representing the program slot</param>
-	/// <inheritdoc/>
-	public void CheckTables(int slot)
+		/// <inheritdoc/>
+		public void CheckTables(int slot)
 		{
 			if (slot < 1 || slot > 10)
 				return;
@@ -483,15 +488,15 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			ProgramSlots[slot].NeedsCheckTables = true;
 			var commandList = new List<string>();
 			var localIpTableObject = ProgramSlots[slot].SortedMods;
-			Debug.Console(2, this, "CheckTables | Checking Slot:{0}", slot);
+			Debug.LogVerbose(this, "CheckTables | Checking Slot:{0}", slot);
 			if (localIpTableObject == null) return;
 			foreach (var ipChange in localIpTableObject)
 			{
 				var consoleCommand = String.Format("IPT -p:{0} -I: {1} -T", ipChange.ProgramNumber, ipChange.IpId);
 				var consoleResponse = CrestronConsole.SendControlSystemCommand(consoleCommand, ref _myResponse) ? _myResponse : null;
-				Debug.Console(2, this, "CheckTables | Response:{0}\n", _myResponse);
-				var myResponseByLine = Regex.Split(_myResponse, "\r\n");	// Ignore first line: CIP_ID  |Type    |Status    |DevID   |Port   |IP Address/SiteName       |Model Name          |Description         |RoomId
-				//divide the return by line
+				Debug.LogVerbose(this, "CheckTables | Response:{0}\n", _myResponse);
+				var myResponseByLine = Regex.Split(_myResponse, "\r\n");    // Ignore first line: CIP_ID  |Type    |Status    |DevID   |Port   |IP Address/SiteName       |Model Name          |Description         |RoomId
+																			//divide the return by line
 				List<string> responseList = myResponseByLine.OfType<string>().ToList();
 				//convert the array to a list
 				responseList.RemoveRange(0, 4);
@@ -509,10 +514,28 @@ public class IpTableEditor : EssentialsBridgeableDevice
 					// Normalize entries from Config
 					var changeIpAddress = NormalizeIpAddress(ipChange.IpAddress);
 
-					Debug.Console(2, this, "CheckTables | IPID:{0} :: Current IPA:{1} :: Requested IPA:{2}", ipChange.IpId, currentIpAddress, changeIpAddress);
+					Debug.LogVerbose(this, "CheckTables | IPID:{0} :: Current IPA:{1} :: Requested IPA:{2} :: Current Port:{3} :: Requested Port:{4}", ipChange.IpId, currentIpAddress, changeIpAddress, currentPort, ipChange.IpPort);
 					if (currentIpAddress == changeIpAddress)
 					{
-						Debug.Console(2, this, "CheckTables | No Change Necessary for IPID:{0} on Slot:{0}", ipChange.IpId, ipChange.ProgramNumber);							
+						if (ipChange.IpPort != 0)
+						{
+							if (currentPort == ipChange.IpPort.ToString())
+							{
+								Debug.LogVerbose(this, "CheckTables | No Change Necessary for IPID:{0} on Slot:{1}", ipChange.IpId, ipChange.ProgramNumber);
+							}
+							else
+							{
+								var cmd = BuildIptCommand(ipChange);
+								if (!string.IsNullOrEmpty(cmd))
+								{
+									commandList.Add(cmd);
+								}
+							}
+						}
+						else
+						{
+							Debug.LogVerbose(this, "CheckTables | No Change Necessary for IPID:{0} on Slot:{1}", ipChange.IpId, ipChange.ProgramNumber);
+						}
 					}
 					else
 					{
@@ -525,7 +548,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				}
 				else
 				{
-					Debug.Console(2, this, "CheckTables | No Current Entry for IPID:{0} on Slot:{0}. Send IPT Command", ipChange.IpId, ipChange.ProgramNumber);
+					Debug.LogVerbose(this, "CheckTables | No Current Entry for IPID:{0} on Slot:{1}. Send IPT Command", ipChange.IpId, ipChange.ProgramNumber);
 					var cmd = BuildIptCommand(ipChange);
 					if (!string.IsNullOrEmpty(cmd))
 					{
@@ -540,21 +563,21 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			}
 			else if (commandList.Count == 0)
 			{
-				Debug.Console(2, this, "Setting Hasmods {0} to false", slot);
+				Debug.LogVerbose(this, "Setting Hasmods {0} to false", slot);
 
 				if (ProgramSlots.ContainsKey(slot))
 					ProgramSlots[slot].HasMods = false;
 				else
-					Debug.Console(2, this, "No '{0}' Key found in HasMods", slot);
+					Debug.LogVerbose(this, "No '{0}' Key found in HasMods", slot);
 
-				Debug.Console(2, this, "Firing HasModsFeedback {0}", slot);
+				Debug.LogVerbose(this, "Firing HasModsFeedback {0}", slot);
 
 				if (ProgramSlots.ContainsKey(slot))
 					ProgramSlots[slot].HasModsFeedback.FireUpdate();
 				else
-					Debug.Console(2, this, "No '{0}' Key found in HasModsFeedback", slot);
+					Debug.LogVerbose(this, "No '{0}' Key found in HasModsFeedback", slot);
 
-				Debug.Console(2, this, "Fired HasMods Feedback {0}", slot);
+				Debug.LogVerbose(this, "Fired HasMods Feedback {0}", slot);
 			}
 		}
 
@@ -562,7 +585,7 @@ public class IpTableEditor : EssentialsBridgeableDevice
 		{
 			//Normalizes all ip addresses to utilize three digits in each octet
 			//Passes hostnames directly out without manipulation
-			Debug.Console(2, this, "NormalizeIpAddress | Input = {0}", data);
+			Debug.LogVerbose(this, "NormalizeIpAddress | Input = {0}", data);
 			//remove "(not resolved)" from unresolved hostnames in the IPTable entry list.
 			data = Regex.Replace(data, @"\(([^)]*)\)$", "");
 
@@ -576,13 +599,13 @@ public class IpTableEditor : EssentialsBridgeableDevice
 					if (!charArray.All(char.IsDigit))
 					{
 						//If an index contains a non-numeric character, it's a hostname
-						Debug.Console(2, this, "NormalizeIpAddress | Return = {0}", data);
+						Debug.LogVerbose(this, "NormalizeIpAddress | Return = {0}", data);
 						return data;
 					}
 					if (myOctets[i].Length > 3)
 					{
 						//If an index has more than three digits, it's a hostname
-						Debug.Console(2, this, "NormalizeIpAddress | Return = {0}", data);
+						Debug.LogVerbose(this, "NormalizeIpAddress | Return = {0}", data);
 						return data;
 					}
 					else
@@ -590,21 +613,31 @@ public class IpTableEditor : EssentialsBridgeableDevice
 						myOctets[i] = myOctets[i].PadLeft(3, '0');
 				}
 				var myReturn = string.Join(".", myOctets.ToArray());
-				Debug.Console(2, this, "NormalizeIpAddress | Return = {0}", myReturn);
+				Debug.LogVerbose(this, "NormalizeIpAddress | Return = {0}", myReturn);
 				return myReturn;
 			}
 			else
-				Debug.Console(2, this, "NormalizeIpAddress | Return = {0}", data);
+				Debug.LogVerbose(this, "NormalizeIpAddress | Return = {0}", data);
 			return data;
 		}
 
 		private string BuildIptCommand(IpTableChangesConfigObject data)
 		{
 			if (data == null) return string.Empty;
-			
+
 			var programDeclaration = string.Format("-P:{0}", data.ProgramNumber);
-			var iptCommand = string.Format("addp {0} {1} {2}", data.IpId, data.IpAddress, programDeclaration);
-			return iptCommand;			
+			var portDeclaration = (data.IpPort == 0) ? null : string.Format("-C:{0}", data.IpPort);
+
+			var iptCommand = string.Empty;
+
+			if (portDeclaration != null)
+			{
+				iptCommand = string.Format($"addp {data.IpId} {data.IpAddress} {programDeclaration} {portDeclaration}");
+				return iptCommand;
+			}
+
+			iptCommand = string.Format($"addp {data.IpId} {data.IpAddress} {programDeclaration}");
+			return iptCommand;
 		}
 
 		private void SendCommandList(List<string> data, int programNumber)
@@ -612,11 +645,11 @@ public class IpTableEditor : EssentialsBridgeableDevice
 			foreach (var iptCommand in data)
 			{
 				var consoleResponse = string.Empty;
-				Debug.Console(2, this, "SendCommandList | IPID Command Sent : {0}", iptCommand);
+				Debug.LogVerbose(this, "SendCommandList | IPID Command Sent : {0}", iptCommand);
 				if (!CrestronConsole.SendControlSystemCommand(iptCommand, ref consoleResponse)) continue;
 				if (consoleResponse.ToLower().Contains("error"))
 				{
-					Debug.Console(0, this, "SendCommandList | Fail! {0}", consoleResponse);
+					Debug.LogVerbose(this, "SendCommandList | Fail! {0}", consoleResponse);
 				}
 			}
 		}
@@ -625,8 +658,8 @@ public class IpTableEditor : EssentialsBridgeableDevice
 		/// Check Table Trigger
 		/// </summary>
 		/// <param name="slot"></param>
-	/// <inheritdoc/>
-	public void CheckTableTrigger(int slot)
+		/// <inheritdoc/>
+		public void CheckTableTrigger(int slot)
 		{
 			if (ProgramSlots.ContainsKey(slot))
 			{
@@ -655,21 +688,21 @@ public class IpTableEditor : EssentialsBridgeableDevice
 				if (customJoins != null)
 					joinMap.SetCustomJoinData(customJoins);
 
-				Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-				Debug.Console(0, this, "Linking to Bridge Type {0}", GetType().Name);
+				Debug.LogDebug(this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+				Debug.LogVerbose(this, "Linking to Bridge Type {0}", GetType().Name);
 
 				for (int i = 0; i < 10; i++)
 				{
-					var join = (uint) (joinMap.CheckTable.JoinNumber + i);
+					var join = (uint)(joinMap.CheckTable.JoinNumber + i);
 					var slot = i + 1;
-					Debug.Console(1, this, "Linking join {0} to slot {1}", join, slot);
+					Debug.LogDebug(this, "Linking join {0} to slot {1}", join, slot);
 					//trilist.BooleanInput[((ushort)(joinMap.CheckTable + ))].BoolValue = IptDevice.HasMods[i];
 					var programSlot = ProgramSlots[slot];
 					if (programSlot == null) continue;
 					programSlot.HasModsFeedback.LinkInputSig(trilist.BooleanInput[@join]);
 					trilist.SetSigTrueAction(@join, () =>
 					{
-						Debug.Console(1, this, "Attempting to CheckTables for slot {0}", slot);
+						Debug.LogDebug(this, "Attempting to CheckTables for slot {0}", slot);
 						CheckTableTrigger(slot);
 					});
 				}
@@ -707,15 +740,15 @@ public class IpTableEditor : EssentialsBridgeableDevice
 	/// <summary>
 	/// Program Slot
 	/// </summary>
-/// <summary>
-/// Represents a program slot for IP table management.
-/// </summary>
-public class ProgramSlot
+	/// <summary>
+	/// Represents a program slot for IP table management.
+	/// </summary>
+	public class ProgramSlot
 	{
 		/// <inheritdoc/>
 		public List<IpTableChangesConfigObject> SortedMods { get; set; }
 		/// <inheritdoc/>
-		public bool HasMods { get;  set; }
+		public bool HasMods { get; set; }
 		/// <inheritdoc/>
 		public BoolFeedback HasModsFeedback { get; set; }
 		/// <inheritdoc/>

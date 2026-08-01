@@ -70,5 +70,6 @@ _ReSharper*/
 *.swp
 *.DS_Store
 Thumbs.db
+output/*
 
 # End of file

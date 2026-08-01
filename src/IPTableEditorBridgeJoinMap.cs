@@ -1,6 +1,6 @@
 ﻿using PepperDash.Essentials.Core;
 
-namespace IPTableEditorPlugin 
+namespace PepperDash.Essentials.Plugins.Crestron.IpTable_Editor 
 {
     public class IpTableEditorBridgeJoinMap : JoinMapBaseAdvanced
     {
