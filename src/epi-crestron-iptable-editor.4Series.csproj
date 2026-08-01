@@ -4,9 +4,9 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
-		<RootNamespace>PepperDash.Essentials.Plugins.crestron.iptable_editor</RootNamespace>
+		<RootNamespace>PepperDash.Essentials.Plugins.Crestron.IpTable_Editor</RootNamespace>
 		<Deterministic>false</Deterministic>
-		<AssemblyTitle>PepperDash.Essentials.Plugins.crestron.iptable_editor</AssemblyTitle>
+		<AssemblyTitle>PepperDash.Essentials.Plugins.Crestron.IpTable_Editor</AssemblyTitle>
 		<Company>PepperDash Technology</Company>
 		<Description>This software is a plugin for PepperDash Essentials.</Description>
 		<Copyright>Copyright 2025</Copyright>
@@ -15,12 +15,16 @@
 		<InformationalVersion>$(Version)</InformationalVersion>
 		<OutputPath>bin\$(Configuration)\</OutputPath>
 		<Authors>PepperDash Technology</Authors>
-		<PackageId>PepperDash.Essentials.Plugins.crestron.iptable_editor</PackageId>
+		<PackageId>PepperDash.Essentials.Plugins.Crestron.IpTable_Editor</PackageId>
 		<PackageProjectUrl>https://github.com/PepperDash/epi-crestron-iptable_editor.git</PackageProjectUrl>
-		<PackageTags>crestron 4series essentials crestron iptable editor</PackageTags>
+		<PackageTags>crestron 4series essentials iptable editor</PackageTags>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
 	</PropertyGroup>
 
@@ -38,10 +42,6 @@
  	<PackageReference Include="PepperDashEssentials" Version="2.12.1" >
   		<ExcludeAssets>runtime</ExcludeAssets>
  	</PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="../output\epi-crestron-iptable-editor.4Series.1.0.0-local.cplz" />
   </ItemGroup>
 
   <ItemGroup>

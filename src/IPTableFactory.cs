@@ -3,7 +3,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
-namespace IPTableEditorPlugin 
+namespace PepperDash.Essentials.Plugins.Crestron.IpTable_Editor 
 {
 	/// <summary>
 	/// Plugin factory for devices that don't require communications using IBasicCommunications or custom communication methods ** logic only plugin **
@@ -31,7 +31,6 @@ namespace IPTableEditorPlugin
 		/// <inheritdoc/>
 		public override EssentialsDevice BuildDevice(DeviceConfig dc)
 		{
-			//Debug.LogDebug( "[{0}] Factory Attempting to create new device from type: {1}", dc.Key, dc.Type);
 			Debug.LogDebug("[{0}] Factory Attempting to create new device from type: {1}", dc.Key, dc.Type);
 
             // get the plugin device properties configuration object & check for null 
