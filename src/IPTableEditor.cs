@@ -443,7 +443,7 @@ namespace PepperDash.Essentials.Plugins.Crestron.IpTable_Editor
 				programSlot.HasMods = false;
 
 
-				programSlot.HasModsFeedback = new BoolFeedback(_key + "HasModsFB", () =>
+				programSlot.HasModsFeedback = new BoolFeedback(_key + "-HasModsFB-" + slot, () =>
 					{
 						Debug.LogVerbose(this, "the value of i is: {0} in HasModsFeedbackFunc", slot);
 						if (ProgramSlots.ContainsKey(slot))
