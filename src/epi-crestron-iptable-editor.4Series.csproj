@@ -5,6 +5,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8</TargetFramework>
 		<RootNamespace>PepperDash.Essentials.Plugins.Crestron.IpTable_Editor</RootNamespace>
+		<AssemblyName>PepperDash.Essentials.Plugins.Crestron.IpTable_Editor</AssemblyName>
 		<Deterministic>false</Deterministic>
 		<AssemblyTitle>PepperDash.Essentials.Plugins.Crestron.IpTable_Editor</AssemblyTitle>
 		<Company>PepperDash Technology</Company>
