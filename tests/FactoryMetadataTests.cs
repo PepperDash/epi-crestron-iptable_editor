@@ -8,7 +8,7 @@ public class FactoryMetadataTests
 {
     // Matches the pinned prerelease this plugin actually targets - NOT the plain "3.0.0" seen
     // in some doc examples, which doesn't exist as a shipped Essentials version.
-    private const string ExpectedMinimumEssentialsFrameworkVersion = "3.0.0-dev-v3-routing.63";
+    private const string ExpectedMinimumEssentialsFrameworkVersion = "3.0.0";
 
     [Theory]
     [InlineData("IpTableEditorFactory")]

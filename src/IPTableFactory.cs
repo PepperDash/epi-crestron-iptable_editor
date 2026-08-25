@@ -19,7 +19,7 @@ namespace PepperDash.Essentials.Plugins.Crestron.IpTable_Editor
 		/// <inheritdoc/>
 		public IpTableEditorFactory()
 		{
-			MinimumEssentialsFrameworkVersion = "3.0.0-dev-v3-routing.63";
+			MinimumEssentialsFrameworkVersion = "3.0.0";
 			TypeNames = new List<string> { "IPTableEditor" };
 		}
 
