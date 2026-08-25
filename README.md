@@ -410,3 +410,97 @@ To verify that the packages installed correctly, open the plugin solution in you
 ### Installing Different versions of PepperDash Core
 
 If you need a different version of PepperDash Core, use the command `nuget install .\packages.config -OutputDirectory .\packages -excludeVersion -Version {versionToGet}`. Omitting the `-Version` option will pull the version indicated in the packages.config file.
+<!-- START Minimum Essentials Framework Versions -->
+### Minimum Essentials Framework Versions
+
+- 3.0.0
+<!-- END Minimum Essentials Framework Versions -->
+<!-- START Config Example -->
+### Config Example
+
+```json
+{
+    "key": "GeneratedKey",
+    "uid": 1,
+    "name": "GeneratedName",
+    "type": "IpTableEditorConfig",
+    "group": "Group",
+    "properties": {
+        "IpTableChanges": [
+            {
+                "Name": "SampleString",
+                "DevId": "SampleString",
+                "IpPort": 0,
+                "ProgramNumber": 0
+            }
+        ],
+        "RunAtStartup": true,
+        "Control": "SampleValue",
+        "PersistentEntry": {
+            "IpId": "SampleString",
+            "IpAddress": "SampleString",
+            "RoomId": "SampleString"
+        },
+        "SelectableEntries": {
+            "0": {
+                "IpId": "SampleString",
+                "IpAddress": "SampleString",
+                "RoomId": "SampleString"
+            }
+        }
+    }
+}
+```
+<!-- END Config Example -->
+<!-- START Supported Types -->
+
+<!-- END Supported Types -->
+<!-- START Join Maps -->
+
+<!-- END Join Maps -->
+<!-- START Interfaces Implemented -->
+### Interfaces Implemented
+
+- IpTableObjectBase
+<!-- END Interfaces Implemented -->
+<!-- START Base Classes -->
+### Base Classes
+
+- JoinMapBaseAdvanced
+- EssentialsBridgeableDevice
+<!-- END Base Classes -->
+<!-- START Public Methods -->
+### Public Methods
+
+- public void SelectEntry(int index)
+- public void SwapEntry(int index)
+- public void PollIpTable()
+- public void SendCmd(string data)
+- public void CheckTables(int slot)
+- public void CheckTableTrigger(int slot)
+- public void Factory_Source_Sets_MinimumEssentialsFrameworkVersion(string factoryName)
+- public void Factory_Source_Sets_TypeNames(string factoryName)
+- public void Factory_Source_Contains_TypeName(string factoryName, string typeName)
+- public void No_Duplicate_TypeNames_Across_Factory_Sources()
+- public void Assembly_Loads_Successfully()
+- public void Assembly_Name_Matches_Expected()
+- public void Factory_Count_Matches_Expected()
+- public void Factory_Exists_ByName(string factoryName)
+- public void All_Factories_Have_Parameterless_Constructor()
+- public void Config_Class_Exists(string className)
+- public void Config_Has_Parameterless_Constructor(string className)
+- public void Config_Property_Has_JsonPropertyAttribute(string className, string propertyName, string jsonName)
+<!-- END Public Methods -->
+<!-- START Bool Feedbacks -->
+### Bool Feedbacks
+
+- HasModsFeedback
+<!-- END Bool Feedbacks -->
+<!-- START Int Feedbacks -->
+### Int Feedbacks
+
+- IntSelectedFeedback
+<!-- END Int Feedbacks -->
+<!-- START String Feedbacks -->
+
+<!-- END String Feedbacks -->
